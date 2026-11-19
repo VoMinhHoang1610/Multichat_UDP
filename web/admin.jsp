@@ -1,0 +1,428 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="multichat_udp.RoomManager" %>
+<%@ page import="multichat_udp.ChatRoom" %>
+<%@ page import="multichat_udp.UserProfile" %>
+<%@ page import="multichat_udp.Account" %>
+<%@ page import="java.util.List" %>
+<%
+    Account account = (Account) session.getAttribute("account");
+    if (account == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+
+    Boolean isAdminObj = (Boolean) session.getAttribute("isAdmin");
+    if (isAdminObj == null || !isAdminObj) {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+%>
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 Forbidden - Quyền Truy Cập Bị Từ Chối</title>
+    <!-- Cache-busting CSS query -->
+    <link rel="stylesheet" href="css/style.css?v=3.0.<%= System.currentTimeMillis() %>">
+</head>
+<body>
+<div class="forbidden-container">
+    <div class="forbidden-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+        </svg>
+    </div>
+    <h1 style="color: var(--danger); font-size: 26px; font-weight: 800; margin-bottom: 8px;">403 FORBIDDEN</h1>
+    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px; color: var(--text);">Quyền Truy Cập Bị Từ Chối</h3>
+    <p style="color: var(--text-muted); font-size: 13.5px; line-height: 1.6; margin-bottom: 24px;">
+        Tài khoản <strong><%= account.getFullName() %> (@<%= account.getUsername() %>)</strong> của bạn có vai trò <strong>MEMBER (Thành Viên)</strong>, không có thẩm quyền truy cập Bảng Điều Khiển Quản Trị Hệ Thống.
+    </p>
+    <div style="display: flex; gap: 10px; justify-content: center;">
+        <a href="index.jsp" class="btn btn-primary" style="padding: 10px 22px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            Quay Lại Sảnh Chờ
+        </a>
+    </div>
+</div>
+</body>
+</html>
+<%
+        return;
+    }
+
+    String roomCode = request.getParameter("room");
+    if (roomCode == null || roomCode.trim().isEmpty()) {
+        roomCode = (String) session.getAttribute("roomCode");
+    }
+
+    ChatRoom room = null;
+    if (roomCode != null) {
+        room = RoomManager.getInstance().getRoom(roomCode);
+    }
+%>
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Quản Trị Admin - UDP Multichat Enterprise</title>
+    <!-- Cache-busting CSS query -->
+    <link rel="stylesheet" href="css/style.css?v=3.0.<%= System.currentTimeMillis() %>">
+</head>
+<body>
+
+<div class="admin-container">
+    <div class="header-bar">
+        <div>
+            <h1 style="font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                BẢNG ĐIỀU KHIỂN QUẢN TRỊ ADMIN (RBAC)
+            </h1>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                Quản trị viên: <strong><%= account.getFullName() %> (@<%= account.getUsername() %>)</strong> • Toàn quyền kiểm soát và xuất báo cáo.
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="index.jsp" class="btn btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Sảnh Chờ
+            </a>
+            <% if (room != null) { %>
+            <a href="chat.jsp?room=<%= room.getRoomCode() %>" class="btn btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Vào Chat
+            </a>
+            <% } %>
+            <button class="btn-icon" onclick="toggleTheme()" title="Đổi giao diện Sáng / Tối">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <% if (room == null) { %>
+    <div class="table-card" style="padding: 44px; text-align: center;">
+        <h3 style="margin-bottom: 14px; font-size: 16px;">Vui lòng chọn hoặc nhập mã phòng cần quản trị</h3>
+        <form method="get" action="admin.jsp" style="display: inline-flex; gap: 10px; max-width: 420px; width: 100%;">
+            <div class="input-group">
+                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="9" x2="20" y2="9"></line>
+                    <line x1="4" y1="15" x2="20" y2="15"></line>
+                    <line x1="10" y1="3" x2="8" y2="21"></line>
+                    <line x1="16" y1="3" x2="14" y2="21"></line>
+                </svg>
+                <input type="text" name="room" placeholder="Nhập mã phòng (vd: LTM2026)" required style="text-transform: uppercase; font-family: monospace; font-weight: bold;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="height: 44px;">Tìm kiếm</button>
+        </form>
+    </div>
+    <% } else { %>
+
+    <!-- 4 MODERN KPI STATS CARDS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-card-top">
+                <span class="stat-label">MÃ PHÒNG CHAT</span>
+                <div class="stat-icon-badge" style="background: var(--primary-gradient);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" y1="9" x2="20" y2="9"></line>
+                        <line x1="4" y1="15" x2="20" y2="15"></line>
+                        <line x1="10" y1="3" x2="8" y2="21"></line>
+                        <line x1="16" y1="3" x2="14" y2="21"></line>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-val" style="color: var(--primary); font-family: monospace;">#<%= room.getRoomCode() %></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-top">
+                <span class="stat-label">SOCKET UDP MULTICAST</span>
+                <div class="stat-icon-badge" style="background: linear-gradient(135deg, #06B6D4, #3B82F6);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"></path>
+                        <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"></path>
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"></path>
+                        <path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-val" style="font-size: 16px; font-family: monospace; margin-top: 10px;">
+                <%= room.getMulticastIp() %>:<%= room.getMulticastPort() %>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-top">
+                <span class="stat-label">THÀNH VIÊN ONLINE</span>
+                <div class="stat-icon-badge" style="background: linear-gradient(135deg, #10B981, #059669);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-val" style="color: var(--accent);"><%= room.getUserCount() %> / <%= room.getMaxUsers() %></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-top">
+                <span class="stat-label">TRẠNG THÁI PHÒNG</span>
+                <div class="stat-icon-badge" style="background: var(--admin-gradient);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-val" style="margin-top: 6px;">
+                <span class="badge <%= "ACTIVE".equals(room.getStatus()) ? "badge-online" : "badge-admin-crown" %>" id="adminRoomStatus" style="font-size: 13px; padding: 4px 12px;">
+                    <%= room.getStatus() %>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIONS BAR & REPORTS -->
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 18px 22px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; box-shadow: var(--shadow-sm);">
+        <div>
+            <div style="font-size: 15px; font-weight: 700;">Xuất File Báo Cáo Dữ Liệu &amp; Thao Tác Phòng</div>
+            <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">Tải danh sách thành viên chi tiết (Excel UTF-8 BOM hoặc Bản in PDF) &amp; điều hành phòng</div>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="api/admin?action=export_csv&roomCode=<%= room.getRoomCode() %>" class="btn btn-primary" target="_blank" title="Tải file Excel CSV">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Xuất File CSV (Excel)
+            </a>
+            <a href="api/admin?action=export_html&roomCode=<%= room.getRoomCode() %>" class="btn btn-secondary" target="_blank" title="Xem bản in HTML hoặc lưu PDF">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+                Bản In / Lưu PDF
+            </a>
+            <button type="button" class="btn btn-secondary" onclick="toggleRoomLock()" title="Tạm khóa hoặc mở khóa phòng">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Khóa / Mở Khóa
+            </button>
+            <button type="button" class="btn btn-danger-subtle" onclick="clearRoomChat()" title="Làm sạch toàn bộ tin nhắn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Xóa Lịch Sử Chat
+            </button>
+        </div>
+    </div>
+
+    <!-- ENTERPRISE DATA TABLE -->
+    <div class="table-card">
+        <div style="padding: 16px 22px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 15px; font-weight: 700;">Danh Sách Người Dùng Trong Phòng (<%= room.getUserCount() %>)</h3>
+            <span class="status-dot-wrapper">
+                <span class="pulse-dot"></span>
+                <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Trực tuyến</span>
+            </span>
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>Thành viên</th>
+                <th>Vai trò</th>
+                <th>Địa chỉ IP</th>
+                <th>Thời gian tham gia</th>
+                <th>Hoạt động gần nhất</th>
+                <th>Số tin</th>
+                <th>Thao tác Quản trị</th>
+            </tr>
+            </thead>
+            <tbody>
+            <%
+                List<UserProfile> userList = room.getActiveUsersList();
+                for (UserProfile u : userList) {
+                    boolean isUserAdmin = "ADMIN".equalsIgnoreCase(u.getRole());
+            %>
+            <tr>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="<%= u.getAvatarUrl() %>" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border);" alt="avt">
+                        <div>
+                            <div style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                                <span><%= u.getUsername() %></span>
+                                <% if (isUserAdmin) { %>
+                                <span class="badge badge-admin-crown" style="font-size: 9.5px; padding: 1px 5px;">👑 Admin</span>
+                                <% } %>
+                            </div>
+                            <div style="font-size: 11.5px; color: var(--text-muted);"><%= (u.getBio() != null && !u.getBio().isEmpty()) ? u.getBio() : "Đang hoạt động" %></div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge <%= isUserAdmin ? "badge-admin-crown" : "badge-member" %>">
+                        <%= u.getRole() %>
+                    </span>
+                </td>
+                <td><code style="background: var(--surface-alt); padding: 2px 6px; border-radius: 4px; font-size: 12px;"><%= u.getIpAddress() %></code></td>
+                <td><%= u.getFormattedJoinTime() %></td>
+                <td><%= u.getFormattedLastActive() %></td>
+                <td><strong><%= u.getMessageCount() %></strong> tin</td>
+                <td>
+                    <% if (!isUserAdmin) { %>
+                    <button type="button" class="btn btn-danger-subtle" style="padding: 4px 10px; font-size: 11.5px;" onclick="kickUser('<%= u.getUserId() %>', '<%= u.getUsername() %>')">
+                        Mời ra
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11.5px; margin-left: 4px;" onclick="muteUser('<%= u.getUserId() %>')">
+                        <%= u.isMuted() ? "🔊 Bật tiếng" : "🔇 Tắt tiếng" %>
+                    </button>
+                    <% } else { %>
+                    <span style="font-size: 12px; color: #b45309; font-weight: 700;">👑 Quản trị viên</span>
+                    <% } %>
+                </td>
+            </tr>
+            <% } %>
+
+            <% if (userList.isEmpty()) { %>
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 44px; color: var(--text-muted);">
+                    Chưa có thành viên nào tham gia phòng chat.
+                </td>
+            </tr>
+            <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <% } %>
+</div>
+
+<script>
+    async function kickUser(uid, uname) {
+        if (!confirm('Bạn có chắc chắn muốn mời thành viên [' + uname + '] ra khỏi phòng qua lệnh socket?')) return;
+
+        const body = new URLSearchParams({
+            action: 'kick',
+            roomCode: '<%= (room != null) ? room.getRoomCode() : "" %>',
+            userId: uid
+        });
+
+        try {
+            const resp = await fetch('api/admin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            });
+            const res = await resp.json();
+            alert(res.message);
+            window.location.reload();
+        } catch (e) {
+            alert('Lỗi thực thi lệnh Admin kick.');
+        }
+    }
+
+    async function muteUser(uid) {
+        const body = new URLSearchParams({
+            action: 'mute',
+            roomCode: '<%= (room != null) ? room.getRoomCode() : "" %>',
+            userId: uid
+        });
+
+        try {
+            const resp = await fetch('api/admin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            });
+            const res = await resp.json();
+            alert(res.message);
+            window.location.reload();
+        } catch (e) {
+            alert('Lỗi thực thi lệnh Admin mute.');
+        }
+    }
+
+    async function toggleRoomLock() {
+        const body = new URLSearchParams({
+            action: 'toggle_lock',
+            roomCode: '<%= (room != null) ? room.getRoomCode() : "" %>'
+        });
+
+        try {
+            const resp = await fetch('api/admin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            });
+            const res = await resp.json();
+            alert('Trạng thái phòng đã chuyển thành: ' + res.status);
+            window.location.reload();
+        } catch (e) {
+            alert('Lỗi chuyển trạng thái phòng.');
+        }
+    }
+
+    async function clearRoomChat() {
+        if (!confirm('Bạn có chắc muốn làm sạch toàn bộ lịch sử trò chuyện trong phòng?')) return;
+        const body = new URLSearchParams({
+            action: 'clear_chat',
+            roomCode: '<%= (room != null) ? room.getRoomCode() : "" %>'
+        });
+
+        try {
+            const resp = await fetch('api/admin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            });
+            const res = await resp.json();
+            alert(res.message);
+        } catch (e) {
+            alert('Lỗi làm sạch lịch sử chat.');
+        }
+    }
+
+    function toggleTheme() {
+        const cur = document.documentElement.getAttribute('data-theme');
+        const target = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', target);
+        localStorage.setItem('udp_theme', target);
+    }
+
+    const savedTheme = localStorage.getItem('udp_theme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+</script>
+
+</body>
+</html>

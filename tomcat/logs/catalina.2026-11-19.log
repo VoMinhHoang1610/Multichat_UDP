@@ -1,0 +1,303 @@
+19-Nov-2026 15:08:34.685 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/10.1.33
+19-Nov-2026 15:08:34.689 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Nov 7 2024 22:28:55 UTC
+19-Nov-2026 15:08:34.689 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 10.1.33.0
+19-Nov-2026 15:08:34.689 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Windows 11
+19-Nov-2026 15:08:34.689 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            10.0
+19-Nov-2026 15:08:34.690 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+19-Nov-2026 15:08:34.690 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             C:\Program Files\Java\jdk-25
+19-Nov-2026 15:08:34.690 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           25.0.1+8-LTS-27
+19-Nov-2026 15:08:34.690 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Oracle Corporation
+19-Nov-2026 15:08:34.690 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:08:34.690 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:08:34.719 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\conf\logging.properties
+19-Nov-2026 15:08:34.719 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+19-Nov-2026 15:08:34.720 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+19-Nov-2026 15:08:34.720 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+19-Nov-2026 15:08:34.720 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+19-Nov-2026 15:08:34.720 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+19-Nov-2026 15:08:34.720 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+19-Nov-2026 15:08:34.721 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+19-Nov-2026 15:08:34.721 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+19-Nov-2026 15:08:34.721 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:08:34.721 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:08:34.721 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\temp
+19-Nov-2026 15:08:34.818 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent Loaded Apache Tomcat Native library [2.0.8] using APR version [1.7.4].
+19-Nov-2026 15:08:34.845 INFO [main] org.apache.catalina.core.AprLifecycleListener.initializeSSL OpenSSL successfully initialized [OpenSSL 3.0.14 4 Jun 2024]
+19-Nov-2026 15:08:35.443 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 15:08:35.523 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [1219] milliseconds
+19-Nov-2026 15:16:49.529 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/10.1.33
+19-Nov-2026 15:16:49.532 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Nov 7 2024 22:28:55 UTC
+19-Nov-2026 15:16:49.533 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 10.1.33.0
+19-Nov-2026 15:16:49.533 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Windows 11
+19-Nov-2026 15:16:49.533 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            10.0
+19-Nov-2026 15:16:49.534 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+19-Nov-2026 15:16:49.534 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             C:\Program Files\Java\jdk-25
+19-Nov-2026 15:16:49.534 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           25.0.1+8-LTS-27
+19-Nov-2026 15:16:49.534 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Oracle Corporation
+19-Nov-2026 15:16:49.535 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:16:49.535 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:16:49.554 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\conf\logging.properties
+19-Nov-2026 15:16:49.554 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+19-Nov-2026 15:16:49.554 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+19-Nov-2026 15:16:49.554 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+19-Nov-2026 15:16:49.554 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+19-Nov-2026 15:16:49.555 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+19-Nov-2026 15:16:49.555 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+19-Nov-2026 15:16:49.556 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+19-Nov-2026 15:16:49.556 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+19-Nov-2026 15:16:49.557 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:16:49.557 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:16:49.558 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\temp
+19-Nov-2026 15:16:49.574 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent Loaded Apache Tomcat Native library [2.0.8] using APR version [1.7.4].
+19-Nov-2026 15:16:49.590 INFO [main] org.apache.catalina.core.AprLifecycleListener.initializeSSL OpenSSL successfully initialized [OpenSSL 3.0.14 4 Jun 2024]
+19-Nov-2026 15:16:49.946 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 15:16:49.991 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [749] milliseconds
+19-Nov-2026 15:16:50.076 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+19-Nov-2026 15:16:50.077 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [Apache Tomcat/10.1.33]
+19-Nov-2026 15:16:50.883 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 15:16:50.927 SEVERE [main] org.apache.catalina.util.LifecycleBase.handleSubClassException Failed to start component [Connector["http-nio-8088"]]
+	org.apache.catalina.LifecycleException: Protocol handler start failed
+		at org.apache.catalina.connector.Connector.startInternal(Connector.java:1061)
+		at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164)
+		at org.apache.catalina.core.StandardService.startInternal(StandardService.java:428)
+		at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164)
+		at org.apache.catalina.core.StandardServer.startInternal(StandardServer.java:870)
+		at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164)
+		at org.apache.catalina.startup.Catalina.start(Catalina.java:757)
+		at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+		at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+		at org.apache.catalina.startup.Bootstrap.start(Bootstrap.java:345)
+		at org.apache.catalina.startup.Bootstrap.main(Bootstrap.java:473)
+	Caused by: java.io.IOException: Unable to establish loopback connection
+		at java.base/sun.nio.ch.PipeImpl$Initializer.init(PipeImpl.java:96)
+		at java.base/sun.nio.ch.PipeImpl.<init>(PipeImpl.java:186)
+		at java.base/sun.nio.ch.WEPollSelectorImpl.<init>(WEPollSelectorImpl.java:78)
+		at java.base/sun.nio.ch.WEPollSelectorProvider.openSelector(WEPollSelectorProvider.java:33)
+		at java.base/java.nio.channels.Selector.open(Selector.java:295)
+		at org.apache.tomcat.util.net.NioEndpoint$Poller.<init>(NioEndpoint.java:610)
+		at org.apache.tomcat.util.net.NioEndpoint.startInternal(NioEndpoint.java:278)
+		at org.apache.tomcat.util.net.AbstractEndpoint.start(AbstractEndpoint.java:1393)
+		at org.apache.coyote.AbstractProtocol.start(AbstractProtocol.java:644)
+		at org.apache.catalina.connector.Connector.startInternal(Connector.java:1058)
+		... 10 more
+	Caused by: java.net.SocketException: Permission denied: connect
+		at java.base/sun.nio.ch.Net.connect0(Native Method)
+		at java.base/sun.nio.ch.Net.connect(Net.java:546)
+		at java.base/sun.nio.ch.Net.connect(Net.java:553)
+		at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:952)
+		at java.base/java.nio.channels.SocketChannel.open(SocketChannel.java:281)
+		at java.base/sun.nio.ch.PipeImpl$Initializer$LoopbackConnector.run(PipeImpl.java:123)
+		at java.base/sun.nio.ch.PipeImpl$Initializer.init(PipeImpl.java:78)
+		... 19 more
+19-Nov-2026 15:16:50.931 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [937] milliseconds
+19-Nov-2026 15:18:31.450 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/10.1.33
+19-Nov-2026 15:18:31.456 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Nov 7 2024 22:28:55 UTC
+19-Nov-2026 15:18:31.457 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 10.1.33.0
+19-Nov-2026 15:18:31.458 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Windows 11
+19-Nov-2026 15:18:31.458 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            10.0
+19-Nov-2026 15:18:31.458 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+19-Nov-2026 15:18:31.459 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             C:\Program Files\Java\jdk-25
+19-Nov-2026 15:18:31.459 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           25.0.1+8-LTS-27
+19-Nov-2026 15:18:31.460 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Oracle Corporation
+19-Nov-2026 15:18:31.460 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:18:31.460 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:18:31.489 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\conf\logging.properties
+19-Nov-2026 15:18:31.489 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+19-Nov-2026 15:18:31.490 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+19-Nov-2026 15:18:31.491 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+19-Nov-2026 15:18:31.491 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+19-Nov-2026 15:18:31.492 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+19-Nov-2026 15:18:31.493 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+19-Nov-2026 15:18:31.493 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+19-Nov-2026 15:18:31.494 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+19-Nov-2026 15:18:31.495 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:18:31.497 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:18:31.497 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\temp
+19-Nov-2026 15:18:31.507 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent Loaded Apache Tomcat Native library [2.0.8] using APR version [1.7.4].
+19-Nov-2026 15:18:31.539 INFO [main] org.apache.catalina.core.AprLifecycleListener.initializeSSL OpenSSL successfully initialized [OpenSSL 3.0.14 4 Jun 2024]
+19-Nov-2026 15:18:32.195 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 15:18:32.252 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [1338] milliseconds
+19-Nov-2026 15:18:32.371 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+19-Nov-2026 15:18:32.372 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [Apache Tomcat/10.1.33]
+19-Nov-2026 15:18:34.158 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 15:18:34.221 SEVERE [main] org.apache.catalina.util.LifecycleBase.handleSubClassException Failed to start component [Connector["http-nio-8088"]]
+	org.apache.catalina.LifecycleException: Protocol handler start failed
+		at org.apache.catalina.connector.Connector.startInternal(Connector.java:1061)
+		at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164)
+		at org.apache.catalina.core.StandardService.startInternal(StandardService.java:428)
+		at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164)
+		at org.apache.catalina.core.StandardServer.startInternal(StandardServer.java:870)
+		at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:164)
+		at org.apache.catalina.startup.Catalina.start(Catalina.java:757)
+		at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+		at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+		at org.apache.catalina.startup.Bootstrap.start(Bootstrap.java:345)
+		at org.apache.catalina.startup.Bootstrap.main(Bootstrap.java:473)
+	Caused by: java.io.IOException: Unable to establish loopback connection
+		at java.base/sun.nio.ch.PipeImpl$Initializer.init(PipeImpl.java:96)
+		at java.base/sun.nio.ch.PipeImpl.<init>(PipeImpl.java:186)
+		at java.base/sun.nio.ch.WEPollSelectorImpl.<init>(WEPollSelectorImpl.java:78)
+		at java.base/sun.nio.ch.WEPollSelectorProvider.openSelector(WEPollSelectorProvider.java:33)
+		at java.base/java.nio.channels.Selector.open(Selector.java:295)
+		at org.apache.tomcat.util.net.NioEndpoint$Poller.<init>(NioEndpoint.java:610)
+		at org.apache.tomcat.util.net.NioEndpoint.startInternal(NioEndpoint.java:278)
+		at org.apache.tomcat.util.net.AbstractEndpoint.start(AbstractEndpoint.java:1393)
+		at org.apache.coyote.AbstractProtocol.start(AbstractProtocol.java:644)
+		at org.apache.catalina.connector.Connector.startInternal(Connector.java:1058)
+		... 10 more
+	Caused by: java.net.SocketException: Permission denied: connect
+		at java.base/sun.nio.ch.Net.connect0(Native Method)
+		at java.base/sun.nio.ch.Net.connect(Net.java:546)
+		at java.base/sun.nio.ch.Net.connect(Net.java:553)
+		at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:952)
+		at java.base/java.nio.channels.SocketChannel.open(SocketChannel.java:281)
+		at java.base/sun.nio.ch.PipeImpl$Initializer$LoopbackConnector.run(PipeImpl.java:123)
+		at java.base/sun.nio.ch.PipeImpl$Initializer.init(PipeImpl.java:78)
+		... 19 more
+19-Nov-2026 15:18:34.227 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [1970] milliseconds
+19-Nov-2026 15:26:05.138 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/10.1.33
+19-Nov-2026 15:26:05.154 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Nov 7 2024 22:28:55 UTC
+19-Nov-2026 15:26:05.154 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 10.1.33.0
+19-Nov-2026 15:26:05.155 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Windows 11
+19-Nov-2026 15:26:05.155 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            10.0
+19-Nov-2026 15:26:05.155 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+19-Nov-2026 15:26:05.155 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             C:\Program Files\Java\jdk-25
+19-Nov-2026 15:26:05.156 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           25.0.1+8-LTS-27
+19-Nov-2026 15:26:05.156 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Oracle Corporation
+19-Nov-2026 15:26:05.156 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:26:05.157 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:26:05.166 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\conf\logging.properties
+19-Nov-2026 15:26:05.166 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+19-Nov-2026 15:26:05.166 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+19-Nov-2026 15:26:05.167 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+19-Nov-2026 15:26:05.167 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+19-Nov-2026 15:26:05.167 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+19-Nov-2026 15:26:05.168 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+19-Nov-2026 15:26:05.168 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+19-Nov-2026 15:26:05.168 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+19-Nov-2026 15:26:05.168 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:26:05.169 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:26:05.169 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\temp
+19-Nov-2026 15:26:05.176 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent Loaded Apache Tomcat Native library [2.0.8] using APR version [1.7.4].
+19-Nov-2026 15:26:05.193 INFO [main] org.apache.catalina.core.AprLifecycleListener.initializeSSL OpenSSL successfully initialized [OpenSSL 3.0.14 4 Jun 2024]
+19-Nov-2026 15:26:05.611 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 15:26:05.658 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [800] milliseconds
+19-Nov-2026 15:26:05.721 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+19-Nov-2026 15:26:05.722 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [Apache Tomcat/10.1.33]
+19-Nov-2026 15:26:06.587 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 15:26:06.649 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [988] milliseconds
+19-Nov-2026 15:30:28.903 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/10.1.33
+19-Nov-2026 15:30:28.911 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Nov 7 2024 22:28:55 UTC
+19-Nov-2026 15:30:28.916 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 10.1.33.0
+19-Nov-2026 15:30:28.917 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Windows 11
+19-Nov-2026 15:30:28.922 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            10.0
+19-Nov-2026 15:30:28.922 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+19-Nov-2026 15:30:28.924 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             C:\Program Files\Java\jdk-25
+19-Nov-2026 15:30:28.929 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           25.0.1+8-LTS-27
+19-Nov-2026 15:30:28.933 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Oracle Corporation
+19-Nov-2026 15:30:28.935 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:30:28.936 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:30:28.961 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\conf\logging.properties
+19-Nov-2026 15:30:28.961 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+19-Nov-2026 15:30:28.963 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+19-Nov-2026 15:30:28.963 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+19-Nov-2026 15:30:28.964 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+19-Nov-2026 15:30:28.964 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+19-Nov-2026 15:30:28.964 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+19-Nov-2026 15:30:28.965 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+19-Nov-2026 15:30:28.966 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+19-Nov-2026 15:30:28.966 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:30:28.967 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 15:30:28.967 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\temp
+19-Nov-2026 15:30:28.987 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent Loaded Apache Tomcat Native library [2.0.8] using APR version [1.7.4].
+19-Nov-2026 15:30:29.027 INFO [main] org.apache.catalina.core.AprLifecycleListener.initializeSSL OpenSSL successfully initialized [OpenSSL 3.0.14 4 Jun 2024]
+19-Nov-2026 15:30:32.594 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 15:30:32.813 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [4466] milliseconds
+19-Nov-2026 15:30:33.005 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+19-Nov-2026 15:30:33.011 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [Apache Tomcat/10.1.33]
+19-Nov-2026 15:30:35.049 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 15:30:35.157 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [2337] milliseconds
+19-Nov-2026 17:36:29.526 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/10.1.33
+19-Nov-2026 17:36:29.598 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Nov 7 2024 22:28:55 UTC
+19-Nov-2026 17:36:29.607 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 10.1.33.0
+19-Nov-2026 17:36:29.610 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Windows 11
+19-Nov-2026 17:36:29.622 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            10.0
+19-Nov-2026 17:36:29.629 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+19-Nov-2026 17:36:29.631 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             C:\Program Files\Java\jdk-25
+19-Nov-2026 17:36:29.632 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           25.0.1+8-LTS-27
+19-Nov-2026 17:36:29.643 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Oracle Corporation
+19-Nov-2026 17:36:29.658 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 17:36:29.659 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 17:36:29.702 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\conf\logging.properties
+19-Nov-2026 17:36:29.743 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+19-Nov-2026 17:36:29.772 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+19-Nov-2026 17:36:29.805 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+19-Nov-2026 17:36:29.822 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+19-Nov-2026 17:36:29.825 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+19-Nov-2026 17:36:29.826 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+19-Nov-2026 17:36:29.828 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+19-Nov-2026 17:36:29.829 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+19-Nov-2026 17:36:29.830 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 17:36:29.831 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 17:36:29.831 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\temp
+19-Nov-2026 17:36:29.860 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent Loaded Apache Tomcat Native library [2.0.8] using APR version [1.7.4].
+19-Nov-2026 17:36:29.930 INFO [main] org.apache.catalina.core.AprLifecycleListener.initializeSSL OpenSSL successfully initialized [OpenSSL 3.0.14 4 Jun 2024]
+19-Nov-2026 17:36:33.231 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 17:36:33.460 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [4752] milliseconds
+19-Nov-2026 17:36:33.681 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+19-Nov-2026 17:36:33.682 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [Apache Tomcat/10.1.33]
+19-Nov-2026 17:36:35.561 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 17:36:35.661 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [2192] milliseconds
+19-Nov-2026 17:56:16.561 INFO [Catalina-utility-1] org.apache.catalina.core.StandardContext.reload Reloading Context with name [] has started
+19-Nov-2026 17:56:16.844 INFO [Catalina-utility-1] org.apache.catalina.core.StandardContext.reload Reloading Context with name [] is completed
+19-Nov-2026 17:56:16.845 INFO [Catalina-utility-1] org.apache.catalina.core.StandardContext.reload Reloading Context with name [/Multichat_UDP] has started
+19-Nov-2026 17:56:17.073 INFO [Catalina-utility-1] org.apache.catalina.core.StandardContext.reload Reloading Context with name [/Multichat_UDP] is completed
+19-Nov-2026 18:11:41.585 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/10.1.33
+19-Nov-2026 18:11:41.591 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          Nov 7 2024 22:28:55 UTC
+19-Nov-2026 18:11:41.594 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version number: 10.1.33.0
+19-Nov-2026 18:11:41.595 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Windows 11
+19-Nov-2026 18:11:41.597 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            10.0
+19-Nov-2026 18:11:41.597 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+19-Nov-2026 18:11:41.597 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             C:\Program Files\Java\jdk-25
+19-Nov-2026 18:11:41.597 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           25.0.1+8-LTS-27
+19-Nov-2026 18:11:41.599 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Oracle Corporation
+19-Nov-2026 18:11:41.599 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 18:11:41.600 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 18:11:41.627 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\conf\logging.properties
+19-Nov-2026 18:11:41.630 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+19-Nov-2026 18:11:41.630 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djdk.tls.ephemeralDHKeySize=2048
+19-Nov-2026 18:11:41.633 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
+19-Nov-2026 18:11:41.636 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.lang=ALL-UNNAMED
+19-Nov-2026 18:11:41.638 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.io=ALL-UNNAMED
+19-Nov-2026 18:11:41.638 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util=ALL-UNNAMED
+19-Nov-2026 18:11:41.639 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+19-Nov-2026 18:11:41.640 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+19-Nov-2026 18:11:41.640 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 18:11:41.641 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat
+19-Nov-2026 18:11:41.643 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=E:\4-LapTrinhMang_BaiTap\Multichat_UDP\tomcat\temp
+19-Nov-2026 18:11:41.654 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent Loaded Apache Tomcat Native library [2.0.8] using APR version [1.7.4].
+19-Nov-2026 18:11:41.682 INFO [main] org.apache.catalina.core.AprLifecycleListener.initializeSSL OpenSSL successfully initialized [OpenSSL 3.0.14 4 Jun 2024]
+19-Nov-2026 18:11:42.434 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 18:11:42.502 INFO [main] org.apache.catalina.startup.Catalina.load Server initialization in [1480] milliseconds
+19-Nov-2026 18:11:42.619 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service [Catalina]
+19-Nov-2026 18:11:42.620 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet engine: [Apache Tomcat/10.1.33]
+19-Nov-2026 18:11:44.971 WARNING [main] org.apache.catalina.util.SessionIdGeneratorBase.createSecureRandom Creation of SecureRandom instance for session ID generation using [SHA1PRNG] took [167] milliseconds.
+19-Nov-2026 18:11:46.250 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler ["http-nio-8088"]
+19-Nov-2026 18:11:46.677 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [4169] milliseconds
+19-Nov-2026 18:17:12.435 SEVERE [main] org.apache.catalina.startup.Catalina.stopServer Could not contact [localhost:8005] (base port [8005] and offset [0]). Tomcat may not be running.
+19-Nov-2026 18:17:12.441 SEVERE [main] org.apache.catalina.startup.Catalina.stopServer Error stopping Catalina
+	java.net.ConnectException: Connection refused: connect
+		at java.base/sun.nio.ch.Net.connect0(Native Method)
+		at java.base/sun.nio.ch.Net.connect(Net.java:546)
+		at java.base/sun.nio.ch.Net.connect(Net.java:535)
+		at java.base/sun.nio.ch.NioSocketImpl.connect(NioSocketImpl.java:585)
+		at java.base/java.net.SocksSocketImpl.connect(SocksSocketImpl.java:284)
+		at java.base/java.net.Socket.connect(Socket.java:659)
+		at java.base/java.net.Socket.connect(Socket.java:597)
+		at java.base/java.net.Socket.<init>(Socket.java:464)
+		at java.base/java.net.Socket.<init>(Socket.java:276)
+		at org.apache.catalina.startup.Catalina.stopServer(Catalina.java:653)
+		at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+		at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+		at org.apache.catalina.startup.Bootstrap.stopServer(Bootstrap.java:393)
+		at org.apache.catalina.startup.Bootstrap.main(Bootstrap.java:478)

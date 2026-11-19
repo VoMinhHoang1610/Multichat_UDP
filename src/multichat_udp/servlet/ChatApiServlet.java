@@ -1,0 +1,224 @@
+package multichat_udp.servlet;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.*;
+import multichat_udp.*;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+
+/**
+ * Servlet cung cấp API nhận/gửi tin nhắn thời gian thực và đồng bộ UDP Multicast.
+ * Tích hợp kiểm tra quyền (Muted, Room Locked) và đóng gói role (ADMIN / MEMBER) vào UDP payload.
+ */
+@WebServlet(name = "ChatApiServlet", urlPatterns = {"/api/chat"})
+public class ChatApiServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+        PrintWriter out = resp.getWriter();
+
+        String roomCode = req.getParameter("roomCode");
+        String action = req.getParameter("action");
+        if (action == null) action = "poll";
+
+        if (roomCode == null || roomCode.trim().isEmpty()) {
+            HttpSession session = req.getSession(false);
+            if (session != null) {
+                roomCode = (String) session.getAttribute("roomCode");
+            }
+        }
+
+        ChatRoom room = RoomManager.getInstance().getRoom(roomCode);
+        if (room == null) {
+            out.print("{\"success\":false,\"message\":\"Phòng chat không tồn tại.\"}");
+            return;
+        }
+
+        // Cap nhat hoat dong cua user trong session
+        HttpSession session = req.getSession(false);
+        boolean isKicked = false;
+        boolean isMuted = false;
+
+        if (session != null) {
+            UserProfile user = (UserProfile) session.getAttribute("user");
+            if (user != null) {
+                user.touch();
+                UserProfile roomUser = room.getUser(user.getUserId());
+                if (roomUser != null) {
+                    roomUser.touch();
+                    isMuted = roomUser.isMuted();
+                } else {
+                    // Thanh vien khong con trong danh sach phong (co the da bi Admin kick)
+                    isKicked = true;
+                }
+            }
+        }
+
+        if ("poll".equalsIgnoreCase(action)) {
+            long since = 0;
+            String sinceStr = req.getParameter("since");
+            if (sinceStr != null) {
+                try {
+                    since = Long.parseLong(sinceStr.trim());
+                } catch (Exception ignored) {
+                }
+            }
+
+            List<ChatMessage> newMessages = room.getMessagesSince(since);
+            List<UserProfile> members = room.getActiveUsersList();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\"success\":true,");
+            sb.append("\"serverTime\":").append(System.currentTimeMillis()).append(",");
+            sb.append("\"userCount\":").append(room.getUserCount()).append(",");
+            sb.append("\"roomStatus\":\"").append(escapeJson(room.getStatus())).append("\",");
+            sb.append("\"isKicked\":").append(isKicked).append(",");
+            sb.append("\"isMuted\":").append(isMuted).append(",");
+
+            // Danh sach tin nhan moi
+            sb.append("\"messages\":[");
+            boolean firstMsg = true;
+            for (ChatMessage m : newMessages) {
+                if (!firstMsg) sb.append(",");
+                sb.append(m.toJson());
+                firstMsg = false;
+            }
+            sb.append("],");
+
+            // Danh sach thanh vien dang online
+            sb.append("\"members\":[");
+            boolean firstUser = true;
+            for (UserProfile u : members) {
+                if (!firstUser) sb.append(",");
+                sb.append(u.toJson());
+                firstUser = false;
+            }
+            sb.append("]");
+
+            sb.append("}");
+            out.print(sb.toString());
+
+        } else if ("history".equalsIgnoreCase(action)) {
+            List<ChatMessage> history = room.getRecentMessages(50);
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\"success\":true,\"messages\":[");
+            boolean first = true;
+            for (ChatMessage m : history) {
+                if (!first) sb.append(",");
+                sb.append(m.toJson());
+                first = false;
+            }
+            sb.append("]}");
+            out.print(sb.toString());
+
+        } else if ("members".equalsIgnoreCase(action)) {
+            List<UserProfile> members = room.getActiveUsersList();
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\"success\":true,\"members\":[");
+            boolean first = true;
+            for (UserProfile u : members) {
+                if (!first) sb.append(",");
+                sb.append(u.toJson());
+                first = false;
+            }
+            sb.append("]}");
+            out.print(sb.toString());
+        } else {
+            out.print("{\"success\":false,\"message\":\"Hành động không hợp lệ.\"}");
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
+        PrintWriter out = resp.getWriter();
+
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("user") == null) {
+            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            out.print("{\"success\":false,\"message\":\"Chưa đăng nhập hoặc phiên làm việc đã hết hạn.\"}");
+            return;
+        }
+
+        UserProfile user = (UserProfile) session.getAttribute("user");
+        String roomCode = (String) session.getAttribute("roomCode");
+        boolean isAdmin = Boolean.TRUE.equals(session.getAttribute("isAdmin"));
+        String role = (session.getAttribute("role") != null) ? (String) session.getAttribute("role") : user.getRole();
+
+        ChatRoom room = RoomManager.getInstance().getRoom(roomCode);
+        if (room == null) {
+            out.print("{\"success\":false,\"message\":\"Phòng chat không tồn tại.\"}");
+            return;
+        }
+
+        // 1. Kiem tra phong tam khoa
+        if ("LOCKED".equalsIgnoreCase(room.getStatus()) && !isAdmin) {
+            out.print("{\"success\":false,\"message\":\"Phòng chat hiện đang bị tạm khóa bởi Admin. Bạn không thể gửi tin lúc này.\"}");
+            return;
+        }
+
+        // 2. Kiem tra nguoi dung bi tat tieng (mute)
+        UserProfile roomUser = room.getUser(user.getUserId());
+        if (roomUser != null && roomUser.isMuted()) {
+            out.print("{\"success\":false,\"message\":\"Bạn đã bị Admin tắt tiếng trong phòng này!\"}");
+            return;
+        }
+
+        String typeStr = req.getParameter("type");
+        String content = req.getParameter("content");
+        String targetUser = req.getParameter("targetUser");
+
+        if (content == null || content.trim().isEmpty()) {
+            out.print("{\"success\":false,\"message\":\"Nội dung tin nhắn không được để trống.\"}");
+            return;
+        }
+
+        ChatMessage msg;
+        if ("STICKER".equalsIgnoreCase(typeStr)) {
+            String pack = req.getParameter("pack");
+            String stickerId = req.getParameter("stickerId");
+            String stickerUrl = req.getParameter("stickerUrl");
+            String extra = "{\"pack\":\"" + escapeJson(pack) + "\",\"id\":\"" + escapeJson(stickerId)
+                    + "\",\"stickerUrl\":\"" + escapeJson(stickerUrl) + "\",\"role\":\"" + role + "\"}";
+            msg = new ChatMessage(MessageType.STICKER, user.getUserId(), user.getUsername(), "[Sticker]",
+                    "", System.currentTimeMillis(), room.getRoomCode(), user.getAvatarUrl(), extra);
+
+        } else if ("LINK".equalsIgnoreCase(typeStr)) {
+            String url = req.getParameter("url");
+            String title = req.getParameter("title");
+            String domain = req.getParameter("domain");
+            String extra = "{\"url\":\"" + escapeJson(url) + "\",\"title\":\"" + escapeJson(title)
+                    + "\",\"domain\":\"" + escapeJson(domain) + "\",\"role\":\"" + role + "\"}";
+            msg = new ChatMessage(MessageType.LINK, user.getUserId(), user.getUsername(), content.trim(),
+                    "", System.currentTimeMillis(), room.getRoomCode(), user.getAvatarUrl(), extra);
+
+        } else {
+            // Tin nhan text hoac whisper
+            MessageType msgType = (targetUser != null && !targetUser.trim().isEmpty()) ? MessageType.WHISPER : MessageType.CHAT;
+            String extra = "{\"role\":\"" + role + "\"}";
+            msg = new ChatMessage(msgType, user.getUserId(), user.getUsername(), content.trim(),
+                    targetUser, System.currentTimeMillis(), room.getRoomCode(), user.getAvatarUrl(), extra);
+        }
+
+        // PHÁT QUA SOCKET UDP MULTICAST
+        try {
+            room.broadcastUDP(msg);
+            user.incrementMessageCount();
+            user.touch();
+
+            out.print("{\"success\":true,\"message\":\"Đã gửi tin nhắn qua UDP Multicast.\",\"messageData\":" + msg.toJson() + "}");
+        } catch (Exception e) {
+            out.print("{\"success\":false,\"message\":\"Lỗi truyền thông UDP: " + escapeJson(e.getMessage()) + "\"}");
+        }
+    }
+
+    private String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+}

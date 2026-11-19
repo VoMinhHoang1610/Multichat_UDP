@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  multichat-app:
+    build: .
+    container_name: multichat_enterprise
+    restart: unless-stopped
+    ports:
+      - "8088:8088/tcp"
+      - "8888:8888/udp"
+      - "8889:8889/udp"
+    environment:
+      - JAVA_OPTS=-Djava.net.preferIPv4Stack=true

@@ -1,0 +1,5 @@
+[
+  {"username":"user1","passwordHash":"8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92","fullName":"Thành Viên Nguyễn Văn A","role":"MEMBER","avatarUrl":"assets/avatars/avatar1.svg","bio":"Lập trình viên Java & UDP Multicast","email":"user1@multichat.enterprise.local","createdAt":1795086783140,"status":"ACTIVE"},
+  {"username":"user2","passwordHash":"8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92","fullName":"Thành Viên Trần Thị B","role":"MEMBER","avatarUrl":"assets/avatars/avatar2.svg","bio":"Xin chào! Rất vui được tham gia phòng chat","email":"user2@multichat.enterprise.local","createdAt":1795086783141,"status":"ACTIVE"},
+  {"username":"admin","passwordHash":"240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9","fullName":"Quản Trị Viên Hệ Thống","role":"ADMIN","avatarUrl":"assets/avatars/admin.svg","bio":"Quản trị viên cấp cao của hệ thống Multichat UDP","email":"admin@multichat.enterprise.local","createdAt":1795086783140,"status":"ACTIVE"}
+]
