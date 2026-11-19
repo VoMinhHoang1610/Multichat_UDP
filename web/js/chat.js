@@ -459,8 +459,12 @@ function renderMembersList(members) {
   const currentSelectedUser = select ? select.value : '';
 
   container.innerHTML = '';
+  const desktopSelect = document.getElementById('desktopRecipientSelect');
   if (select) {
     select.innerHTML = '<option value="">Cả phòng (Tất cả)</option>';
+  }
+  if (desktopSelect) {
+    desktopSelect.innerHTML = '<option value="">Cả phòng (Tất cả)</option>';
   }
 
   // Chia danh sach thanh 2 nhom: Quản trị viên (ADMIN) & Thành viên (MEMBER)
@@ -507,15 +511,21 @@ function renderMembersList(members) {
         item.addEventListener('click', () => {
           if (select) {
             select.value = u.username;
-            if (typeof updateWhisperState === 'function') {
-              updateWhisperState(u.username);
-            }
+          }
+          if (desktopSelect) {
+            desktopSelect.value = u.username;
+          }
+          if (typeof updateWhisperState === 'function') {
+            updateWhisperState(u.username);
           }
           if (typeof toggleInfoDrawer === 'function') {
             toggleInfoDrawer(false);
           }
           if (typeof toggleSidebar === 'function') {
             toggleSidebar(false);
+          }
+          if (window.innerWidth <= 991 && typeof closeSidebarDrawer === 'function') {
+            closeSidebarDrawer();
           }
           const chatInput = document.getElementById('chatInput');
           if (chatInput) chatInput.focus();
@@ -529,6 +539,16 @@ function renderMembersList(members) {
             opt.selected = true;
           }
           select.appendChild(opt);
+        }
+
+        if (desktopSelect) {
+          const opt2 = document.createElement('option');
+          opt2.value = u.username;
+          opt2.innerText = `🔒 ${u.username}`;
+          if (u.username === currentSelectedUser) {
+            opt2.selected = true;
+          }
+          desktopSelect.appendChild(opt2);
         }
       }
 
