@@ -55,8 +55,11 @@
 </head>
 <body class="in-chat">
 
+<!-- Mobile Sidebar Backdrop -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+
 <div class="chat-app">
-    <!-- LEFT SIDEBAR -->
+    <!-- LEFT SIDEBAR (Slide-out Drawer on Mobile) -->
     <aside class="chat-sidebar" id="chatSidebar">
         <!-- Sidebar Top Header -->
         <div class="sidebar-header">
@@ -68,7 +71,7 @@
                 </div>
                 <span>UDP Multichat</span>
             </div>
-            <div style="display: flex; gap: 6px;">
+            <div style="display: flex; gap: 6px; align-items: center;">
                 <button class="btn-icon" onclick="toggleTheme()" title="Đổi giao diện Sáng / Tối" style="width: 32px; height: 32px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -88,6 +91,12 @@
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                     </svg>
                 </a>
+                <button type="button" class="btn-icon sidebar-close-btn" onclick="toggleSidebar(false)" title="Đóng danh sách">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -162,27 +171,44 @@
         <!-- Top Navbar -->
         <header class="chat-navbar">
             <div class="navbar-title-group">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <h2><%= room.getRoomName() %></h2>
-                    <% if (isAdmin) { %>
-                    <span class="badge badge-admin-crown">👑 Admin</span>
-                    <% } %>
-                    <span class="badge <%= "ACTIVE".equals(room.getStatus()) ? "badge-online" : "badge-admin-crown" %>" id="roomStatusBadge">
-                        <%= room.getStatus() %>
-                    </span>
-                </div>
-                <div class="navbar-sub">
-                    <span class="pulse-dot"></span>
-                    <span>UDP Multicast Socket</span>
-                    <span>•</span>
-                    <span id="roomCodeDisplay" style="font-family: monospace; font-weight: bold; cursor: pointer;" onclick="copyRoomCode('<%= room.getRoomCode() %>')">
-                        Mã: #<%= room.getRoomCode() %>
-                    </span>
+                <a href="index.jsp" class="mobile-back-btn" title="Về Sảnh Chờ">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </a>
+                <div class="navbar-titles-col" style="min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <h2 class="room-title-text"><%= room.getRoomName() %></h2>
+                        <% if (isAdmin) { %>
+                        <span class="badge badge-admin-crown badge-compact">👑 Admin</span>
+                        <% } %>
+                        <span class="badge <%= "ACTIVE".equals(room.getStatus()) ? "badge-online" : "badge-admin-crown" %> badge-compact" id="roomStatusBadge">
+                            <%= room.getStatus() %>
+                        </span>
+                    </div>
+                    <div class="navbar-sub">
+                        <span class="pulse-dot"></span>
+                        <span>Socket</span>
+                        <span>•</span>
+                        <span id="roomCodeDisplay" style="font-family: monospace; font-weight: bold; cursor: pointer;" onclick="copyRoomCode('<%= room.getRoomCode() %>')">
+                            #<%= room.getRoomCode() %>
+                        </span>
+                    </div>
                 </div>
             </div>
 
             <!-- NAVBAR ACTIONS (PHÂN QUYỀN RBAC) -->
             <div class="navbar-actions">
+                <!-- Mobile Members Drawer Toggle Button -->
+                <button type="button" class="btn btn-secondary mobile-members-btn" onclick="toggleSidebar(true)" title="Danh sách thành viên">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span class="badge badge-online mobile-online-badge" id="mobileOnlineCount"><%= room.getUserCount() %></span>
+                </button>
                 <% if (isAdmin) { %>
                 <button type="button" class="btn btn-secondary" onclick="openAdminModal()" title="Mở bảng điều khiển nhanh phòng chat">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -468,6 +494,20 @@
 </div>
 
 <script>
+    function toggleSidebar(open) {
+        const sb = document.getElementById('chatSidebar');
+        const bd = document.getElementById('sidebarBackdrop');
+        if (!sb) return;
+        const willOpen = (open !== undefined) ? open : !sb.classList.contains('open');
+        if (willOpen) {
+            sb.classList.add('open');
+            if (bd) bd.classList.add('open');
+        } else {
+            sb.classList.remove('open');
+            if (bd) bd.classList.remove('open');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const roomData = {
             roomCode: '<%= room.getRoomCode() %>',

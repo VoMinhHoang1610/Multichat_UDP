@@ -439,9 +439,11 @@ async function uploadFolder(folderInput) {
 function renderMembersList(members) {
   const container = document.getElementById('membersList');
   const countEl = document.getElementById('onlineCount');
+  const mobileCountEl = document.getElementById('mobileOnlineCount');
   const select = document.getElementById('recipientSelect');
 
   if (countEl) countEl.innerText = members.length;
+  if (mobileCountEl) mobileCountEl.innerText = members.length;
   if (!container) return;
 
   const currentSelectedUser = select ? select.value : '';
