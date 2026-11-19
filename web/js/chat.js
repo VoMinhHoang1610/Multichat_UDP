@@ -60,16 +60,22 @@ function initChat(roomData, userData) {
 
     textarea.addEventListener('input', function() {
       this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+      this.style.height = Math.min(this.scrollHeight, 84) + 'px';
     });
   }
 
-  // Dong picker khi click ra ngoai
+  // Dong picker va action sheet khi click ra ngoai
   document.addEventListener('click', function(e) {
     const picker = document.getElementById('pickerPopup');
     const pickerBtn = document.getElementById('btnTogglePicker');
     if (picker && !picker.contains(e.target) && pickerBtn && !pickerBtn.contains(e.target)) {
       picker.style.display = 'none';
+    }
+
+    const sheet = document.getElementById('composerActionSheet');
+    const sheetBtn = document.getElementById('btnToggleActionSheet');
+    if (sheet && !sheet.contains(e.target) && sheetBtn && !sheetBtn.contains(e.target)) {
+      sheet.style.display = 'none';
     }
   });
 }
@@ -497,7 +503,15 @@ function renderMembersList(members) {
         item.addEventListener('click', () => {
           if (select) {
             select.value = u.username;
+            if (typeof updateWhisperState === 'function') {
+              updateWhisperState(u.username);
+            }
           }
+          if (window.innerWidth <= 768 && typeof toggleSidebar === 'function') {
+            toggleSidebar(false);
+          }
+          const chatInput = document.getElementById('chatInput');
+          if (chatInput) chatInput.focus();
         });
 
         if (select) {
