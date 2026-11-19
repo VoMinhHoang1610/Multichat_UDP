@@ -48,247 +48,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title><%= room.getRoomName() %> - UDP Multichat Enterprise</title>
-    <!-- Cache-busting CSS query -->
-    <link rel="stylesheet" href="css/style.css?v=3.6.<%= System.currentTimeMillis() %>">
-    <script src="js/chat.js?v=3.6.<%= System.currentTimeMillis() %>" defer></script>
+    <title><%= room.getRoomName() %> - UDP Multichat</title>
+    <!-- Dynamic cache-busting -->
+    <link rel="stylesheet" href="css/style.css?v=5.0.<%= System.currentTimeMillis() %>">
+    <script src="js/chat.js?v=5.0.<%= System.currentTimeMillis() %>" defer></script>
 </head>
 <body class="in-chat">
 
-<!-- Mobile Sidebar Backdrop (tap to close drawer) -->
-<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+<!-- APP ROOT CONTAINER -->
+<div class="chat-app-root">
 
-<div class="chat-app">
-    <!-- LEFT SIDEBAR (Slide-out Drawer on Mobile, Fixed Panel on Desktop) -->
-    <aside class="chat-sidebar" id="chatSidebar">
-        <!-- Sidebar Top Header -->
-        <div class="sidebar-header">
-            <div class="brand-title">
-                <div class="brand-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg>
-                </div>
-                <span>UDP Multichat</span>
-            </div>
-            <div style="display: flex; gap: 6px; align-items: center;">
-                <button class="btn-icon" onclick="toggleTheme()" title="Đổi giao diện Sáng / Tối" style="width: 32px; height: 32px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-                <a href="index.jsp" class="btn-icon" title="Quay lại Sảnh Chờ" style="width: 32px; height: 32px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                    </svg>
-                </a>
-                <button type="button" class="btn-icon sidebar-close-btn" onclick="toggleSidebar(false)" title="Đóng danh sách">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
+    <!-- ========================================================
+         MAIN CHAT VIEW (100% VIEWPORT, MESSENGER / ZALO STYLE)
+         ======================================================== -->
+    <div class="chat-main-view">
 
-        <!-- Room Information Card in Drawer -->
-        <div class="room-card">
-            <div class="room-card-title">
-                <span title="<%= room.getRoomName() %>" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;"><%= room.getRoomName() %></span>
-                <span class="room-code-badge" onclick="copyRoomCode('<%= room.getRoomCode() %>')" title="Nhấp để sao chép mã phòng">
-                    #<%= room.getRoomCode() %>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                </span>
-            </div>
-            <div class="room-net-info">
-                <span class="pulse-dot"></span>
-                <span>Socket: <code><%= room.getMulticastIp() %>:<%= room.getMulticastPort() %></code></span>
-            </div>
-        </div>
-
-        <!-- Online Members List Title -->
-        <div class="sidebar-section-title">
-            <span>THÀNH VIÊN TRỰC TUYẾN</span>
-            <span class="badge badge-online" id="onlineCount"><%= room.getUserCount() %></span>
-        </div>
-
-        <!-- Members Container (Categorized into Admins & Members via chat.js) -->
-        <div class="members-container" id="membersList">
-            <!-- Dynamic Member items populated by chat.js -->
-        </div>
-
-        <!-- Current User Profile Footer in Drawer -->
-        <div class="sidebar-user-footer">
-            <div class="user-brief" onclick="openProfileModal()" title="Nhấp để cập nhật thông tin cá nhân">
-                <div class="avatar-wrapper">
-                    <img id="myAvatar" src="<%= user.getAvatarUrl() %>" class="member-avatar" alt="Avatar">
-                    <span class="avatar-badge"></span>
-                </div>
-                <div style="flex: 1; min-width: 0;">
-                    <div id="myName" class="member-name">
-                        <%= user.getUsername() %>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
-                        <% if (isAdmin) { %>
-                        <span class="badge badge-admin-crown" style="font-size: 9.5px; padding: 1px 5px;">👑 Admin</span>
-                        <% } else { %>
-                        <span class="badge badge-member-mini">Thành viên</span>
-                        <% } %>
-                    </div>
-                </div>
-            </div>
-
-            <button class="btn-icon" onclick="openProfileModal()" title="Cài đặt hồ sơ cá nhân" style="width: 32px; height: 32px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                </svg>
-            </button>
-
-            <button class="btn-icon" onclick="leaveRoom()" title="Rời phòng chat" style="width: 32px; height: 32px; color: var(--danger);">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-            </button>
-        </div>
-    </aside>
-
-    <!-- MAIN CHAT WORKSPACE -->
-    <main class="chat-workspace">
-        <!-- SINGLE COMPACT TOP NAVBAR (Fixed Height 54px on Mobile & Desktop) -->
-        <header class="chat-navbar">
-            <div class="navbar-title-group">
-                <!-- Mobile Back Button to Lobby -->
-                <a href="index.jsp" class="mobile-back-btn" title="Về Sảnh Chờ">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <!-- 1. COMPACT TOP HEADER (FIXED 54px HEIGHT) -->
+        <header class="chat-header">
+            <!-- Left: Back Button & Room Info -->
+            <div class="header-left">
+                <a href="index.jsp" class="header-icon-btn" title="Trở về Sảnh Chờ">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
                 </a>
-
-                <div class="navbar-titles-col" style="min-width: 0;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <h2 class="room-title-text" title="<%= room.getRoomName() %>"><%= room.getRoomName() %></h2>
-                        <% if (isAdmin) { %>
-                        <span class="badge badge-admin-crown badge-compact desktop-only">👑 Admin</span>
-                        <% } %>
-                        <span class="badge <%= "ACTIVE".equals(room.getStatus()) ? "badge-online" : "badge-admin-crown" %> badge-compact desktop-only" id="roomStatusBadge">
-                            <%= room.getStatus() %>
-                        </span>
-                    </div>
-                    <div class="navbar-sub">
-                        <span class="pulse-dot"></span>
-                        <span id="roomCodeDisplay" style="font-family: monospace; font-weight: bold; cursor: pointer;" onclick="copyRoomCode('<%= room.getRoomCode() %>')" title="Nhấp sao chép mã">
-                            #<%= room.getRoomCode() %>
-                        </span>
-                        <span class="desktop-only">•</span>
-                        <span class="desktop-only"><%= room.getMulticastIp() %></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- NAVBAR ACTIONS -->
-            <div class="navbar-actions">
-                <!-- Theme Toggle Button -->
-                <button type="button" class="btn-icon header-icon-btn" onclick="toggleTheme()" title="Đổi giao diện Sáng / Tối">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                </button>
-
-                <!-- Admin Action Quick Button on Mobile Header -->
-                <% if (isAdmin) { %>
-                <button type="button" class="btn-icon header-icon-btn admin-crown-btn" onclick="openAdminModal()" title="Bảng điều khiển Quản trị">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg>
-                </button>
-                <% } %>
-
-                <!-- Mobile Members Drawer Toggle Button -->
-                <button type="button" class="mobile-members-btn" onclick="toggleSidebar(true)" title="Xem danh sách thành viên trực tuyến">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                
+                <div class="header-room-avatar" onclick="toggleInfoDrawer(true)" title="Xem thông tin phòng">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
-                    <span class="badge badge-online mobile-online-badge" id="mobileOnlineCount"><%= room.getUserCount() %></span>
+                </div>
+
+                <div class="header-titles" onclick="toggleInfoDrawer(true)" title="Xem thông tin phòng &amp; thành viên">
+                    <div class="header-title-line">
+                        <span class="room-title-text"><%= room.getRoomName() %></span>
+                        <% if (isAdmin) { %>
+                        <span class="badge badge-admin-crown" style="font-size: 9.5px; padding: 1px 5px;">👑 Admin</span>
+                        <% } %>
+                    </div>
+                    <div class="header-sub-line">
+                        <span class="pulse-dot"></span>
+                        <span id="headerOnlineText"><%= room.getUserCount() %> người trực tuyến</span>
+                        <span>•</span>
+                        <span class="room-code-tag">#<%= room.getRoomCode() %></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Action Buttons -->
+            <div class="header-right">
+                <!-- Theme Toggle Button -->
+                <button type="button" class="header-icon-btn" onclick="toggleTheme()" title="Đổi giao diện Sáng / Tối">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
                 </button>
 
-                <!-- Desktop-only Actions -->
-                <% if (isAdmin) { %>
-                <button type="button" class="btn btn-secondary desktop-only" onclick="openAdminModal()" title="Mở bảng điều khiển nhanh phòng chat">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <!-- Room Info / Members Drawer Trigger (Standard Messenger 'i' button) -->
+                <button type="button" class="header-icon-btn info-btn" onclick="toggleInfoDrawer(true)" title="Thông tin phòng &amp; Thành viên">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
                     </svg>
-                    Quản Lý Phòng
+                    <span class="online-dot-badge" id="headerBadgeCount"><%= room.getUserCount() %></span>
                 </button>
-                <a href="admin.jsp?room=<%= room.getRoomCode() %>" class="btn btn-secondary desktop-only" title="Xem danh sách thành viên chi tiết & quản lý">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                    </svg>
-                    Bảng Admin
-                </a>
-                <a href="api/admin?action=export_csv&roomCode=<%= room.getRoomCode() %>" class="btn btn-primary desktop-only" title="Tải file CSV danh sách thành viên (Excel UTF-8 BOM)">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    Xuất CSV
-                </a>
-                <% } else { %>
-                <a href="index.jsp" class="btn btn-secondary desktop-only">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                    </svg>
-                    Sảnh Chờ
-                </a>
-                <% } %>
             </div>
         </header>
 
-        <!-- Room Lock Notice Banner -->
-        <div id="roomLockedBanner" style="display: <%= "LOCKED".equalsIgnoreCase(room.getStatus()) ? "block" : "none" %>; padding: 10px 16px; background: #FEE2E2; color: #B91C1C; font-size: 13px; font-weight: 700; text-align: center; border-bottom: 1px solid #FCA5A5;">
-            🔒 Phòng chat hiện đang bị Quản trị viên tạm khóa. Bạn chỉ có thể xem nội dung và không thể gửi tin lúc này.
+        <!-- 2. ROOM LOCKED BANNER (If Admin locked room) -->
+        <div id="roomLockedBanner" style="display: <%= "LOCKED".equalsIgnoreCase(room.getStatus()) ? "block" : "none" %>;" class="room-locked-banner">
+            🔒 Phòng chat hiện đang bị Quản trị viên tạm khóa. Bạn chỉ có thể xem nội dung.
         </div>
 
-        <!-- Messages Stream (Takes ~90% Screen Estate on Mobile) -->
+        <!-- 3. CHAT MESSAGES STREAM (DOMINANT SPACE ~90% OF SCREEN) -->
         <div class="chat-messages" id="chatMessages">
             <div class="msg-row system">
                 <div class="msg-bubble">
-                    Phòng chat UDP Multicast <strong><%= room.getRoomName() %></strong> đã sẵn sàng. Chào mừng <strong><%= user.getUsername() %></strong>!
+                    Phòng chat UDP Multicast <strong><%= room.getRoomName() %></strong> đã kết nối. Chào mừng <strong><%= user.getUsername() %></strong>!
                 </div>
             </div>
         </div>
 
-        <!-- Floating Modern Input Dock (Single-Line Compact Mobile & Desktop) -->
+        <!-- 4. COMPACT SINGLE-LINE COMPOSER DOCK (ZALO / MESSENGER STYLE) -->
         <footer class="chat-composer-wrapper">
-            <!-- Whisper Target Notice Chip (Appears only when whispering to a user) -->
+            <!-- Whisper Target Notice Chip (Only shown when whispering) -->
             <div id="whisperIndicator" class="whisper-indicator" style="display: none;">
                 <span class="whisper-text">
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -300,7 +155,45 @@
                 <button type="button" class="whisper-clear-btn" onclick="clearWhisper()" title="Hủy nhắn riêng">✕</button>
             </div>
 
-            <!-- Composer Attachment Popup Action Sheet -->
+            <!-- Single Line Bar (Height ~50px) -->
+            <div class="composer-floating-dock">
+                <!-- Hidden native file inputs -->
+                <input type="file" id="fileUploadInput" style="display: none;" onchange="uploadFile(this)">
+                <input type="file" id="folderUploadInput" style="display: none;" webkitdirectory directory multiple onchange="uploadFolder(this)">
+
+                <!-- Attachment Plus Button -->
+                <button type="button" class="composer-action-btn" id="btnToggleActionSheet" onclick="toggleComposerActionSheet()" title="Đính kèm tệp, thư mục ZIP, hoặc nhắn riêng">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+
+                <!-- Quick Sticker & Emoji Button -->
+                <button type="button" class="composer-action-btn quick-sticker-btn" id="btnTogglePicker" onclick="togglePicker()" title="Sticker &amp; Emoji">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                        <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                        <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                    </svg>
+                </button>
+
+                <!-- Auto-expanding Input Pill (1 to 3 lines max) -->
+                <div class="chat-input-wrapper">
+                    <textarea id="chatInput" class="chat-textarea" rows="1" placeholder="Nhập tin nhắn... (Enter để gửi)"></textarea>
+                </div>
+
+                <!-- Send Button (38px circular with paper-plane icon) -->
+                <button type="button" class="chat-send-btn" onclick="sendChatMessage()" title="Gửi tin nhắn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Attachment Action Sheet Popup -->
             <div id="composerActionSheet" class="composer-action-sheet" style="display: none;">
                 <div class="action-sheet-title">TÙY CHỌN ĐÍNH KÈM &amp; GỬI</div>
                 
@@ -353,44 +246,6 @@
                 </div>
             </div>
 
-            <!-- Single-Line Floating Dock -->
-            <div class="composer-floating-dock">
-                <!-- Hidden file inputs -->
-                <input type="file" id="fileUploadInput" style="display: none;" onchange="uploadFile(this)">
-                <input type="file" id="folderUploadInput" style="display: none;" webkitdirectory directory multiple onchange="uploadFolder(this)">
-
-                <!-- Attachment Action Sheet Trigger Button -->
-                <button type="button" class="composer-action-btn" id="btnToggleActionSheet" onclick="toggleComposerActionSheet()" title="Đính kèm tệp, thư mục, sticker, chọn người nhận">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                </button>
-
-                <!-- Quick Sticker Button -->
-                <button type="button" class="composer-action-btn quick-sticker-btn" id="btnTogglePicker" onclick="togglePicker()" title="Chọn Sticker &amp; Emoji">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-                        <line x1="9" y1="9" x2="9.01" y2="9"></line>
-                        <line x1="15" y1="9" x2="15.01" y2="9"></line>
-                    </svg>
-                </button>
-
-                <!-- Input Textarea (Auto-expand 1-3 lines) -->
-                <div class="chat-input-wrapper">
-                    <textarea id="chatInput" class="chat-textarea" rows="1" placeholder="Nhập tin nhắn... (Enter để gửi)"></textarea>
-                </div>
-
-                <!-- Send Button (38px circular with paper-plane icon) -->
-                <button type="button" class="chat-send-btn" onclick="sendChatMessage()" title="Gửi tin nhắn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="22" y1="2" x2="11" y2="13"></line>
-                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                    </svg>
-                </button>
-            </div>
-
             <!-- Sticker & Emoji Picker Popup -->
             <div id="pickerPopup" class="picker-popup" style="display: none;">
                 <div class="picker-tabs">
@@ -437,7 +292,141 @@
                 </div>
             </div>
         </footer>
-    </main>
+    </div>
+
+    <!-- ========================================================
+         ROOM INFO & MEMBERS SLIDE-OUT DRAWER (OFF-CANVAS)
+         (Completely hidden from main chat view unless toggled!)
+         ======================================================== -->
+    <div class="drawer-backdrop" id="drawerBackdrop" onclick="toggleInfoDrawer(false)"></div>
+    <aside class="room-info-drawer" id="roomInfoDrawer">
+        <!-- Drawer Top Header -->
+        <div class="drawer-header">
+            <div class="drawer-header-title">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <span>Thông Tin Phòng</span>
+            </div>
+            <button type="button" class="drawer-close-btn" onclick="toggleInfoDrawer(false)" title="Đóng">✕</button>
+        </div>
+
+        <div class="drawer-body">
+            <!-- Room Info Card -->
+            <div class="drawer-room-card">
+                <div class="drawer-room-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="drawer-room-name"><%= room.getRoomName() %></h3>
+                <div class="drawer-room-tags">
+                    <span class="room-code-badge" onclick="copyRoomCode('<%= room.getRoomCode() %>')" title="Nhấp sao chép mã">
+                        #<%= room.getRoomCode() %>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </span>
+                    <span class="badge <%= "ACTIVE".equals(room.getStatus()) ? "badge-online" : "badge-admin-crown" %>" id="roomStatusBadge">
+                        <%= room.getStatus() %>
+                    </span>
+                </div>
+                <div class="drawer-socket-meta">
+                    <span class="pulse-dot"></span>
+                    <span>Multicast: <code><%= room.getMulticastIp() %>:<%= room.getMulticastPort() %></code></span>
+                </div>
+            </div>
+
+            <!-- Admin Actions Panel (If Admin) -->
+            <% if (isAdmin) { %>
+            <div class="drawer-section">
+                <div class="drawer-section-title">QUẢN TRỊ VIÊN</div>
+                <div class="drawer-admin-actions">
+                    <a href="admin.jsp?room=<%= room.getRoomCode() %>" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: flex-start;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                        </svg>
+                        Bảng Quản Trị Chi Tiết
+                    </a>
+                    <a href="api/admin?action=export_csv&roomCode=<%= room.getRoomCode() %>" class="btn btn-primary btn-sm" style="width: 100%; justify-content: flex-start;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Xuất File Excel (CSV)
+                    </a>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="adminClearChat()" style="width: 100%; justify-content: flex-start;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Xóa Lịch Sử Trò Chuyện
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="adminToggleLock()" style="width: 100%; justify-content: flex-start;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        Tạm Khóa / Mở Khóa Phòng
+                    </button>
+                </div>
+            </div>
+            <% } %>
+
+            <!-- Online Members List (Divided into Admins & Members via chat.js) -->
+            <div class="drawer-section">
+                <div class="drawer-section-title">
+                    <span>THÀNH VIÊN TRỰC TUYẾN</span>
+                    <span class="badge badge-online" id="onlineCount"><%= room.getUserCount() %></span>
+                </div>
+                <div class="members-container" id="membersList">
+                    <!-- Populated by chat.js -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Drawer Footer: Current User Profile & Leave Room -->
+        <div class="drawer-footer">
+            <div class="drawer-user-card" onclick="openProfileModal()" title="Cài đặt hồ sơ cá nhân">
+                <div class="avatar-wrapper">
+                    <img id="myAvatar" src="<%= user.getAvatarUrl() %>" class="member-avatar" alt="Avatar">
+                    <span class="avatar-badge"></span>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div id="myName" class="drawer-user-name"><%= user.getUsername() %></div>
+                    <div class="drawer-user-sub">
+                        <% if (isAdmin) { %>
+                        <span class="badge badge-admin-crown" style="font-size: 9px; padding: 1px 5px;">👑 Admin</span>
+                        <% } else { %>
+                        <span class="badge badge-member-mini">Thành viên</span>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <div class="drawer-footer-btns">
+                <button type="button" class="btn-icon" onclick="openProfileModal()" title="Cài đặt tài khoản" style="width: 32px; height: 32px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+                <button type="button" class="btn-icon" onclick="leaveRoom()" title="Rời phòng chat" style="width: 32px; height: 32px; color: var(--danger);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
 </div>
 
 <!-- MODAL CẬP NHẬT THÔNG TIN CÁ NHÂN -->
@@ -496,77 +485,6 @@
     </div>
 </div>
 
-<!-- MODAL QUẢN TRỊ ADMIN NHANH (CHỈ ADMIN MỚI THẤY) -->
-<% if (isAdmin) { %>
-<div id="adminModal" class="modal-overlay" style="display: none;">
-    <div class="modal-box" style="max-width: 520px;">
-        <div class="modal-header">
-            <h3>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
-                Quản Trị Phòng Chat - #<%= room.getRoomCode() %>
-            </h3>
-            <button type="button" class="btn-icon" style="width: 32px; height: 32px;" onclick="closeAdminModal()">✕</button>
-        </div>
-        <div class="modal-body">
-            <div style="padding: 10px 14px; border-radius: var(--radius-md); background: #FEF3C7; color: #92400E; font-size: 13px; font-weight: 700; margin-bottom: 16px; border: 1px solid #FDE68A;">
-                👑 Quản trị viên: <strong><%= account.getFullName() %></strong> (Toàn quyền điều hành)
-            </div>
-
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 8px;">
-                XUẤT BÁO CÁO DỮ LIỆU PHÒNG
-            </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <a href="api/admin?action=export_csv&roomCode=<%= room.getRoomCode() %>" class="btn btn-primary" style="flex: 1;" target="_blank">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    File CSV (Excel)
-                </a>
-                <a href="api/admin?action=export_html&roomCode=<%= room.getRoomCode() %>" class="btn btn-secondary" style="flex: 1;" target="_blank">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                        <rect x="6" y="14" width="12" height="8"></rect>
-                    </svg>
-                    Bản In / PDF
-                </a>
-            </div>
-
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 8px;">
-                THAO TÁC ĐIỀU HÀNH PHÒNG
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <a href="admin.jsp?room=<%= room.getRoomCode() %>" class="btn btn-secondary" style="justify-content: flex-start;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                    </svg>
-                    Quản lý danh sách thành viên chi tiết
-                </a>
-                <button type="button" class="btn btn-secondary" style="justify-content: flex-start;" onclick="adminClearChat()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                    Làm sạch lịch sử trò chuyện
-                </button>
-                <button type="button" class="btn btn-danger" style="justify-content: flex-start;" onclick="adminToggleLock()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                    </svg>
-                    Tạm khóa / Mở khóa phòng chat
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-<% } %>
-
 <!-- LIGHTBOX MODAL (XEM ẢNH PHÓNG TO) -->
 <div id="lightboxModal" class="modal-overlay" style="display: none;" onclick="closeLightbox()">
     <div style="max-width: 90vw; max-height: 90vh; position: relative;">
@@ -575,18 +493,18 @@
 </div>
 
 <script>
-    // Toggle Mobile Sidebar Drawer
-    function toggleSidebar(open) {
-        const sb = document.getElementById('chatSidebar');
-        const bd = document.getElementById('sidebarBackdrop');
-        if (!sb) return;
-        const willOpen = (open !== undefined) ? open : !sb.classList.contains('open');
+    // Toggle Info Drawer (Members & Room Info)
+    function toggleInfoDrawer(open) {
+        const drawer = document.getElementById('roomInfoDrawer');
+        const backdrop = document.getElementById('drawerBackdrop');
+        if (!drawer) return;
+        const willOpen = (open !== undefined) ? open : !drawer.classList.contains('open');
         if (willOpen) {
-            sb.classList.add('open');
-            if (bd) bd.classList.add('open');
+            drawer.classList.add('open');
+            if (backdrop) backdrop.classList.add('open');
         } else {
-            sb.classList.remove('open');
-            if (bd) bd.classList.remove('open');
+            drawer.classList.remove('open');
+            if (backdrop) backdrop.classList.remove('open');
         }
     }
 
@@ -700,15 +618,6 @@
         }
     }
 
-    function openAdminModal() {
-        const m = document.getElementById('adminModal');
-        if (m) m.style.display = 'flex';
-    }
-    function closeAdminModal() {
-        const m = document.getElementById('adminModal');
-        if (m) m.style.display = 'none';
-    }
-
     <% if (isAdmin) { %>
     async function adminClearChat() {
         if (!confirm('Bạn có chắc muốn xóa sạch toàn bộ lịch sử tin nhắn của phòng?')) return;
@@ -720,7 +629,6 @@
         const res = await resp.json();
         alert(res.message);
         document.getElementById('chatMessages').innerHTML = '';
-        closeAdminModal();
     }
 
     async function adminToggleLock() {
@@ -735,7 +643,6 @@
         if (b) b.innerText = res.status;
         const lockBanner = document.getElementById('roomLockedBanner');
         if (lockBanner) lockBanner.style.display = (res.status === 'LOCKED') ? 'block' : 'none';
-        closeAdminModal();
     }
     <% } %>
 

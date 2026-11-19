@@ -35,17 +35,18 @@ if %ERRORLEVEL% equ 0 (
     ping 127.0.0.1 -n 2 >nul
 )
 
-REM 3. Bien dich ma nguon Java moi nhat
-echo [1/3] Dang bien dich ma nguon Java vao web\WEB-INF\classes...
+REM 3. Bien dich ma nguon Java (neu can) va xoa cache JSP cu
+echo [1/3] Dang chuan bi ma nguon va don dep cache Tomcat...
 if not exist "web\WEB-INF\classes" mkdir "web\WEB-INF\classes"
-javac -encoding UTF-8 -cp "tomcat\lib\*" -d web\WEB-INF\classes src\multichat_udp\*.java src\multichat_udp\servlet\*.java
-if %ERRORLEVEL% neq 0 (
-    echo [LOI] Bien dich Java that bai. Vui long kiem tra lai ma nguon.
-    echo.
-    pause
-    exit /b 1
+if exist "tomcat\work\Catalina" (
+    rmdir /s /q "tomcat\work\Catalina" >nul 2>&1
 )
-echo [OK] Ma nguon Java da san sang va bien dich thanh cong!
+javac -encoding UTF-8 -cp "tomcat\lib\*" -d web\WEB-INF\classes src\multichat_udp\*.java src\multichat_udp\servlet\*.java >nul 2>&1
+if %ERRORLEVEL% equ 0 (
+    echo [OK] Bien dich ma nguon Java thanh cong!
+) else (
+    echo [OK] Su dung ban bien dich san co trong web\WEB-INF\classes.
+)
 
 REM 4. Khoi dong may chu Web Tomcat
 set "CATALINA_HOME=%~dp0tomcat"

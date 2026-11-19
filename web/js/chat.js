@@ -446,10 +446,14 @@ function renderMembersList(members) {
   const container = document.getElementById('membersList');
   const countEl = document.getElementById('onlineCount');
   const mobileCountEl = document.getElementById('mobileOnlineCount');
+  const headerOnlineText = document.getElementById('headerOnlineText');
+  const headerBadgeCount = document.getElementById('headerBadgeCount');
   const select = document.getElementById('recipientSelect');
 
   if (countEl) countEl.innerText = members.length;
   if (mobileCountEl) mobileCountEl.innerText = members.length;
+  if (headerBadgeCount) headerBadgeCount.innerText = members.length;
+  if (headerOnlineText) headerOnlineText.innerText = `${members.length} người trực tuyến`;
   if (!container) return;
 
   const currentSelectedUser = select ? select.value : '';
@@ -507,7 +511,10 @@ function renderMembersList(members) {
               updateWhisperState(u.username);
             }
           }
-          if (window.innerWidth <= 768 && typeof toggleSidebar === 'function') {
+          if (typeof toggleInfoDrawer === 'function') {
+            toggleInfoDrawer(false);
+          }
+          if (typeof toggleSidebar === 'function') {
             toggleSidebar(false);
           }
           const chatInput = document.getElementById('chatInput');

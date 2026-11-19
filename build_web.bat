@@ -34,6 +34,9 @@ if %ERRORLEVEL% equ 0 (
 echo Dang bien dich ma nguon Java vao web\WEB-INF\classes...
 
 if not exist "web\WEB-INF\classes" mkdir "web\WEB-INF\classes"
+if exist "tomcat\work\Catalina" (
+    rmdir /s /q "tomcat\work\Catalina" >nul 2>&1
+)
 
 javac -encoding UTF-8 -cp "tomcat\lib\*" -d web\WEB-INF\classes src\multichat_udp\*.java src\multichat_udp\servlet\*.java
 
