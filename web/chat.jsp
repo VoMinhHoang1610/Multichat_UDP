@@ -201,8 +201,8 @@
                         </svg>
                     </button>
 
-                    <!-- Quick Sticker Button -->
-                    <button type="button" class="composer-btn" id="btnTogglePicker" onclick="togglePicker()" title="Sticker &amp; Emoji">
+                    <!-- Quick Icon, Sticker & GIF Button -->
+                    <button type="button" class="composer-btn" id="btnTogglePicker" onclick="togglePicker()" title="Icon, Sticker &amp; GIF">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10"></circle>
                             <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
@@ -270,8 +270,8 @@
                             </svg>
                         </span>
                         <div class="action-sheet-text">
-                            <span class="action-title">Sticker &amp; Emoji</span>
-                            <span class="action-sub">Hình động mèo Dev &amp; biểu cảm</span>
+                            <span class="action-title">Icon, Sticker &amp; GIF</span>
+                            <span class="action-sub">Biểu cảm, nhãn dán &amp; ảnh động GIF</span>
                         </div>
                     </button>
 
@@ -285,49 +285,70 @@
                     </div>
                 </div>
 
-                <!-- Sticker & Emoji Picker Popup -->
+                <!-- Modern Icon, Sticker & GIF Picker Popup -->
                 <div id="pickerPopup" class="picker-popup" style="display: none;">
-                    <div class="picker-tabs">
-                        <button type="button" class="picker-tab active" id="tabBtn-cat" onclick="switchPickerTab('cat')">🐱 Mèo</button>
-                        <button type="button" class="picker-tab" id="tabBtn-tech" onclick="switchPickerTab('tech')">🚀 Dev</button>
-                        <button type="button" class="picker-tab" id="tabBtn-react" onclick="switchPickerTab('react')">🔥 Cảm xúc</button>
-                        <button type="button" class="picker-tab" id="tabBtn-emoji" onclick="switchPickerTab('emoji')">😊 Emoji</button>
+                    <div class="picker-header">
+                        <div class="picker-tabs" role="tablist">
+                            <button type="button" class="picker-tab active" id="tabBtn-emoji" onclick="switchPickerTab('emoji')" role="tab" aria-selected="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                                    <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                                    <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                                </svg>
+                                <span>Icon</span>
+                            </button>
+                            <button type="button" class="picker-tab" id="tabBtn-sticker" onclick="switchPickerTab('sticker')" role="tab" aria-selected="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"></path>
+                                    <path d="M15 3v6h6"></path>
+                                </svg>
+                                <span>Sticker</span>
+                            </button>
+                            <button type="button" class="picker-tab" id="tabBtn-gif" onclick="switchPickerTab('gif')" role="tab" aria-selected="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="2" y="4" width="20" height="16" rx="3"></rect>
+                                    <path d="M7 12h3v3H7v-6h3"></path>
+                                    <line x1="13" y1="9" x2="13" y2="15"></line>
+                                    <path d="M16 15V9h3"></path>
+                                    <line x1="16" y1="12" x2="18.5" y2="12"></line>
+                                </svg>
+                                <span>GIF</span>
+                            </button>
+                        </div>
+
+                        <div class="picker-search-wrap">
+                            <svg class="picker-search-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="text" id="pickerSearchInput" class="picker-search-input" placeholder="Tìm biểu tượng cảm xúc..." oninput="filterPickerItems()" />
+                            <button type="button" id="pickerSearchClear" class="picker-search-clear" onclick="clearPickerSearch()" style="display: none;" title="Xóa tìm kiếm">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Sub-filter pills for Sticker -->
+                        <div id="stickerPackBar" class="picker-subtabs" style="display: none;">
+                            <button type="button" class="picker-subtab active" data-pack="all" onclick="filterStickerPack('all')">Tất cả</button>
+                            <button type="button" class="picker-subtab" data-pack="cat" onclick="filterStickerPack('cat')">Mèo</button>
+                            <button type="button" class="picker-subtab" data-pack="tech" onclick="filterStickerPack('tech')">Dev</button>
+                            <button type="button" class="picker-subtab" data-pack="react" onclick="filterStickerPack('react')">Cảm xúc</button>
+                        </div>
                     </div>
 
-                    <div id="pickerPanel-cat" class="picker-content picker-panel" style="display: grid;">
-                        <div class="picker-item" onclick="sendSticker('cat', 'love', 'assets/stickers/cat_love.svg')"><img src="assets/stickers/cat_love.svg" alt="Love"></div>
-                        <div class="picker-item" onclick="sendSticker('cat', 'cool', 'assets/stickers/cat_cool.svg')"><img src="assets/stickers/cat_cool.svg" alt="Cool"></div>
-                        <div class="picker-item" onclick="sendSticker('cat', 'party', 'assets/stickers/cat_party.svg')"><img src="assets/stickers/cat_party.svg" alt="Party"></div>
-                    </div>
+                    <div class="picker-body">
+                        <!-- TAB 1: ICON / EMOJI -->
+                        <div id="pickerPanel-emoji" class="picker-panel picker-emoji-panel"></div>
 
-                    <div id="pickerPanel-tech" class="picker-content picker-panel" style="display: none;">
-                        <div class="picker-item" onclick="sendSticker('tech', 'rocket', 'assets/stickers/tech_rocket.svg')"><img src="assets/stickers/tech_rocket.svg" alt="Rocket"></div>
-                        <div class="picker-item" onclick="sendSticker('tech', 'coffee', 'assets/stickers/tech_coffee.svg')"><img src="assets/stickers/tech_coffee.svg" alt="Coffee"></div>
-                        <div class="picker-item" onclick="sendSticker('tech', 'bug', 'assets/stickers/tech_bug.svg')"><img src="assets/stickers/tech_bug.svg" alt="Bug"></div>
-                    </div>
+                        <!-- TAB 2: STICKER -->
+                        <div id="pickerPanel-sticker" class="picker-panel picker-sticker-grid" style="display: none;"></div>
 
-                    <div id="pickerPanel-react" class="picker-content picker-panel" style="display: none;">
-                        <div class="picker-item" onclick="sendSticker('react', 'like', 'assets/stickers/react_like.svg')"><img src="assets/stickers/react_like.svg" alt="Like"></div>
-                        <div class="picker-item" onclick="sendSticker('react', 'heart', 'assets/stickers/react_heart.svg')"><img src="assets/stickers/react_heart.svg" alt="Heart"></div>
-                        <div class="picker-item" onclick="sendSticker('react', 'fire', 'assets/stickers/react_fire.svg')"><img src="assets/stickers/react_fire.svg" alt="Fire"></div>
-                    </div>
-
-                    <div id="pickerPanel-emoji" class="picker-content picker-panel" style="display: none; grid-template-columns: repeat(5, 1fr);">
-                        <div class="picker-item" onclick="insertEmoji('😀')">😀</div>
-                        <div class="picker-item" onclick="insertEmoji('😂')">😂</div>
-                        <div class="picker-item" onclick="insertEmoji('😍')">😍</div>
-                        <div class="picker-item" onclick="insertEmoji('😎')">😎</div>
-                        <div class="picker-item" onclick="insertEmoji('👍')">👍</div>
-                        <div class="picker-item" onclick="insertEmoji('🎉')">🎉</div>
-                        <div class="picker-item" onclick="insertEmoji('🔥')">🔥</div>
-                        <div class="picker-item" onclick="insertEmoji('🚀')">🚀</div>
-                        <div class="picker-item" onclick="insertEmoji('❤️')">❤️</div>
-                        <div class="picker-item" onclick="insertEmoji('💯')">💯</div>
-                        <div class="picker-item" onclick="insertEmoji('💻')">💻</div>
-                        <div class="picker-item" onclick="insertEmoji('☕')">☕</div>
-                        <div class="picker-item" onclick="insertEmoji('✨')">✨</div>
-                        <div class="picker-item" onclick="insertEmoji('🤝')">🤝</div>
-                        <div class="picker-item" onclick="insertEmoji('📚')">📚</div>
+                        <!-- TAB 3: GIF -->
+                        <div id="pickerPanel-gif" class="picker-panel picker-gif-grid" style="display: none;"></div>
                     </div>
                 </div>
             </div>

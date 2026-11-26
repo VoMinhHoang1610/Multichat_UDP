@@ -89,7 +89,8 @@ public class ChatRoom implements Serializable {
                 user.touch();
                 if (msg.getType() == MessageType.CHAT || msg.getType() == MessageType.FILE
                         || msg.getType() == MessageType.FOLDER || msg.getType() == MessageType.STICKER
-                        || msg.getType() == MessageType.LINK || msg.getType() == MessageType.WHISPER) {
+                        || msg.getType() == MessageType.LINK || msg.getType() == MessageType.WHISPER
+                        || msg.getType() == MessageType.GIF) {
                     user.incrementMessageCount();
                 }
             } else {

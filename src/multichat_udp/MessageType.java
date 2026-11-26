@@ -16,7 +16,8 @@ public enum MessageType {
     PROFILE_UPDATE((byte) 10),
     SYSTEM((byte) 11),
     RECALL((byte) 12),
-    REACTION((byte) 13);
+    REACTION((byte) 13),
+    GIF((byte) 14);
 
     private final byte code;
 

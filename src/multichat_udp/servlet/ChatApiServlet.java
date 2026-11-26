@@ -332,6 +332,14 @@ public class ChatApiServlet extends HttpServlet {
             msg = new ChatMessage(MessageType.STICKER, user.getUserId(), user.getUsername(), "[Sticker]",
                     resolvedTargetName, System.currentTimeMillis(), room.getRoomCode(), user.getAvatarUrl(), extra);
 
+        } else if ("GIF".equalsIgnoreCase(typeStr)) {
+            String gifUrl = req.getParameter("gifUrl");
+            String gifTitle = req.getParameter("title");
+            String extra = "{\"gifUrl\":\"" + escapeJson(gifUrl) + "\",\"title\":\"" + escapeJson(gifTitle != null ? gifTitle : "GIF")
+                    + "\",\"role\":\"" + role + "\"" + extraFields + "}";
+            msg = new ChatMessage(MessageType.GIF, user.getUserId(), user.getUsername(), "[GIF]",
+                    resolvedTargetName, System.currentTimeMillis(), room.getRoomCode(), user.getAvatarUrl(), extra);
+
         } else if ("LINK".equalsIgnoreCase(typeStr)) {
             String url = req.getParameter("url");
             String title = req.getParameter("title");

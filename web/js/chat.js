@@ -144,6 +144,10 @@ function initChat(roomData, userData) {
     });
   }
 
+  if (typeof initPickerCatalog === 'function') {
+    initPickerCatalog();
+  }
+
   // Dong picker va action sheet khi click ra ngoai
   document.addEventListener('click', function(e) {
     const picker = document.getElementById('pickerPopup');
@@ -297,19 +301,7 @@ function appendMessage(msg) {
 
   if (isSystem) {
     row.innerHTML = `<div class="msg-bubble">${escapeHtml(msg.content)} <span class="msg-time">${msg.formattedTime || ''}</span></div>`;
-    const bubbleEl = row.querySelector('.msg-bubble');
-  if (bubbleEl) {
-    bubbleEl.addEventListener('click', (e) => {
-      if (e.target.closest('a, button, img, .msg-reply-quote')) return;
-      const wasOpen = row.classList.contains('actions-open');
-      document.querySelectorAll('.msg-row.actions-open').forEach(el => el.classList.remove('actions-open'));
-      if (!wasOpen) {
-        row.classList.add('actions-open');
-      }
-    });
-  }
-
-  container.appendChild(row);
+    container.appendChild(row);
     return true;
   }
 
@@ -324,6 +316,12 @@ function appendMessage(msg) {
       stickerUrl = msg.extraData.stickerUrl;
     }
     bodyHtml = `<img src="${stickerUrl}" class="sticker-msg" alt="Sticker" />`;
+
+  } else if (msg.type === 'GIF') {
+    const gData = (msg.extraData && typeof msg.extraData === 'object') ? msg.extraData : {};
+    const gifUrl = gData.gifUrl || 'assets/gifs/hello.gif';
+    const gifTitle = gData.title || 'GIF';
+    bodyHtml = `<img src="${escapeHtml(gifUrl)}" class="gif-msg" onclick="openLightbox('${escapeHtml(gifUrl)}')" alt="${escapeHtml(gifTitle)}" title="${escapeHtml(gifTitle)}" loading="lazy" />`;
 
   } else if (msg.type === 'FILE') {
     const fData = msg.extraData || {};
@@ -621,13 +619,62 @@ async function sendSticker(pack, stickerId, stickerUrl) {
   }
 }
 
-// Chen Emoji vao textarea
+// Gui GIF
+async function sendGif(gifUrl, title) {
+  togglePicker(false);
+  const whisper = getWhisperTarget();
+  const postData = new URLSearchParams();
+  postData.append('type', 'GIF');
+  postData.append('content', '[GIF]');
+  postData.append('gifUrl', gifUrl);
+  postData.append('title', title || 'GIF');
+  if (whisper.targetUserId) {
+    postData.append('targetUserId', whisper.targetUserId);
+    postData.append('targetUser', whisper.targetUser);
+  }
+  if (replyingTo) {
+    postData.append('replyToId', replyingTo.msgDomId);
+    postData.append('replyToSender', replyingTo.senderName);
+    postData.append('replyToPreview', replyingTo.preview);
+  }
+
+  try {
+    const resp = await fetch('api/chat?action=send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: postData.toString()
+    });
+    const res = await resp.json();
+    if (!res.success) {
+      alert(res.message || 'Không thể gửi GIF.');
+    } else {
+      clearReply();
+      pollMessages();
+    }
+  } catch (err) {
+    alert('Lỗi kết nối khi gửi GIF.');
+  }
+}
+
+// Chen Emoji vao textarea tai vi tri con tro & luu gan day
 function insertEmoji(emoji) {
   const textarea = document.getElementById('chatInput');
   if (textarea) {
-    textarea.value += emoji;
+    const start = textarea.selectionStart != null ? textarea.selectionStart : textarea.value.length;
+    const end = textarea.selectionEnd != null ? textarea.selectionEnd : textarea.value.length;
+    const before = textarea.value.substring(0, start);
+    const after = textarea.value.substring(end);
+    textarea.value = before + emoji + after;
+    const nextPos = start + emoji.length;
     textarea.focus();
+    try {
+      textarea.setSelectionRange(nextPos, nextPos);
+    } catch (e) {
+    }
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 84) + 'px';
   }
+  recordRecentEmoji(emoji);
 }
 
 // Tai len File
@@ -843,24 +890,274 @@ function scrollToBottom() {
   }
 }
 
+const PICKER_EMOJI_GROUPS = [
+  {
+    id: 'smileys',
+    title: 'Mặt cười & Biểu cảm',
+    items: [
+      { c: '😀', k: 'cuoi vui smile happy' }, { c: '😄', k: 'cuoi tuoi grin' }, { c: '😁', k: 'he rang' },
+      { c: '😂', k: 'cuoi ra nuoc mat haha lol' }, { c: '🤣', k: 'cuoi lan lon haha' }, { c: '😊', k: 'mim cuoi de thuong' },
+      { c: '😍', k: 'yeu thich tim mat' }, { c: '🥰', k: 'yeu thuong am ap' }, { c: '😘', k: 'hon gui yeu' },
+      { c: '😎', k: 'ngau kinh ram cool' }, { c: '🤩', k: 'ngoi sao an tuong' }, { c: '🥳', k: 'tiec chuc mung party' },
+      { c: '😏', k: 'nham hiem cuoi nhe' }, { c: '🤔', k: 'suy nghi thac mac' }, { c: '🤨', k: 'nghi ngo' },
+      { c: '😮', k: 'ngac nhien wow' }, { c: '😲', k: 'bat ngo' }, { c: '🥺', k: 'nan ni de thuong' },
+      { c: '😢', k: 'buon khoc sad' }, { c: '😭', k: 'khoc to hu hu' }, { c: '😤', k: 'tuc gian' },
+      { c: '😡', k: 'gian du angry' }, { c: '🤯', k: 'no nao soc' }, { c: '😴', k: 'buon ngu' },
+      { c: '😇', k: 'thien than' }, { c: '🤗', k: 'om hug' }, { c: '🤭', k: 'che mieng cuoi' },
+      { c: '🤫', k: 'suyt bi mat' }
+    ]
+  },
+  {
+    id: 'gestures',
+    title: 'Cử chỉ & Trái tim',
+    items: [
+      { c: '👍', k: 'thich ok like dong y' }, { c: '👎', k: 'khong thich' }, { c: '👌', k: 'ok chuan' },
+      { c: '👏', k: 'vo tay chuc mung clap' }, { c: '🙌', k: 'hoan ho' }, { c: '🤝', k: 'bat tay hop tac' },
+      { c: '🙏', k: 'cam on xin chao' }, { c: '👋', k: 'vay tay xin chao hello' }, { c: '✌️', k: 'chien thang peace' },
+      { c: '🤞', k: 'chuc may man' }, { c: '💪', k: 'manh me co len' }, { c: '🫶', k: 'ban tay trai tim' },
+      { c: '❤️', k: 'tim yeu love' }, { c: '🧡', k: 'tim cam' }, { c: '💛', k: 'tim vang' },
+      { c: '💚', k: 'tim xanh' }, { c: '💙', k: 'tim duong' }, { c: '💜', k: 'tim tim' },
+      { c: '🤍', k: 'tim trang' }, { c: '💔', k: 'tan vo' }, { c: '💯', k: '100 diem chuan' }
+    ]
+  },
+  {
+    id: 'work',
+    title: 'Công việc & Hoạt động',
+    items: [
+      { c: '🔥', k: 'lua chay dinh fire' }, { c: '✨', k: 'lap lanh dep' }, { c: '🎉', k: 'phao hoa chuc mung party' },
+      { c: '🎊', k: 'tung hoa' }, { c: '🚀', k: 'ten lua deploy phong' }, { c: '💻', k: 'laptop code lap trinh' },
+      { c: '☕', k: 'ca phe coffee' }, { c: '🐛', k: 'con bo bug loi' }, { c: '✅', k: 'xong hoan thanh done' },
+      { c: '⚡', k: 'tia set nhanh' }, { c: '🎯', k: 'muc tieu chuan' }, { c: '💡', k: 'y tuong sang tao' },
+      { c: '📚', k: 'sach hoc tap' }, { c: '🎵', k: 'nhac vui' }
+    ]
+  }
+];
+
+const PICKER_STICKERS = [
+  { pack: 'cat', id: 'love', url: 'assets/stickers/cat_love.svg', label: 'Mèo yêu thương tim' },
+  { pack: 'cat', id: 'cool', url: 'assets/stickers/cat_cool.svg', label: 'Mèo ngầu kính râm cool' },
+  { pack: 'cat', id: 'party', url: 'assets/stickers/cat_party.svg', label: 'Mèo tiệc tùng chúc mừng party' },
+  { pack: 'cat', id: 'wow', url: 'assets/stickers/cat_wow.svg', label: 'Mèo ngạc nhiên wow' },
+  { pack: 'tech', id: 'rocket', url: 'assets/stickers/tech_rocket.svg', label: 'Tên lửa tăng tốc rocket' },
+  { pack: 'tech', id: 'coffee', url: 'assets/stickers/tech_coffee.svg', label: 'Cà phê lập trình coffee' },
+  { pack: 'tech', id: 'bug', url: 'assets/stickers/tech_bug.svg', label: 'Sửa lỗi bug dev' },
+  { pack: 'tech', id: 'ship', url: 'assets/stickers/tech_ship.svg', label: 'Hoàn thành xong OK ship' },
+  { pack: 'react', id: 'like', url: 'assets/stickers/react_like.svg', label: 'Thích đồng ý like ok' },
+  { pack: 'react', id: 'heart', url: 'assets/stickers/react_heart.svg', label: 'Trái tim yêu love' },
+  { pack: 'react', id: 'fire', url: 'assets/stickers/react_fire.svg', label: 'Rực cháy quá đỉnh fire' },
+  { pack: 'react', id: 'clap', url: 'assets/stickers/react_clap.svg', label: 'Vỗ tay chúc mừng clap' }
+];
+
+const PICKER_GIFS = [
+  { id: 'hello', url: 'assets/gifs/hello.gif', title: 'Xin chào', keywords: 'xin chao hello hi chao' },
+  { id: 'haha', url: 'assets/gifs/haha.gif', title: 'Hahaha', keywords: 'haha cuoi vui lol' },
+  { id: 'love', url: 'assets/gifs/love.gif', title: 'Yêu thương', keywords: 'yeu thuong love tim' },
+  { id: 'ok', url: 'assets/gifs/ok.gif', title: 'Chuẩn luôn', keywords: 'ok chuan dong y xong' },
+  { id: 'clap', url: 'assets/gifs/clap.gif', title: 'Tuyệt vời', keywords: 'vo tay tuyet voi clap' },
+  { id: 'fire', url: 'assets/gifs/fire.gif', title: 'Quá đỉnh', keywords: 'lua qua dinh fire hot' },
+  { id: 'coding', url: 'assets/gifs/coding.gif', title: 'Đang code', keywords: 'code lap trinh dev fix bug' },
+  { id: 'party', url: 'assets/gifs/party.gif', title: 'Chúc mừng', keywords: 'chuc mung party tiec' }
+];
+
+let activePickerTab = 'emoji';
+let activeStickerPack = 'all';
+let pickerInitialized = false;
+
+function getRecentEmojis() {
+  try {
+    const raw = localStorage.getItem('udp_recent_emojis');
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function recordRecentEmoji(emoji) {
+  try {
+    const recent = getRecentEmojis().filter(e => e !== emoji);
+    recent.unshift(emoji);
+    localStorage.setItem('udp_recent_emojis', JSON.stringify(recent.slice(0, 7)));
+    if (activePickerTab === 'emoji') {
+      renderEmojiPanel(getPickerQuery());
+    }
+  } catch (e) {
+  }
+}
+
+function getPickerQuery() {
+  const input = document.getElementById('pickerSearchInput');
+  return input ? input.value.trim() : '';
+}
+
+function initPickerCatalog() {
+  if (pickerInitialized) return;
+  pickerInitialized = true;
+  renderEmojiPanel('');
+  renderStickerPanel('all', '');
+  renderGifPanel('');
+}
+
+function renderEmojiPanel(query) {
+  const panel = document.getElementById('pickerPanel-emoji');
+  if (!panel) return;
+  const q = (query || '').toLowerCase();
+  let html = '';
+
+  if (!q) {
+    const recent = getRecentEmojis();
+    if (recent.length > 0) {
+      html += `<div class="picker-section-title">Thường dùng</div><div class="picker-emoji-grid">`;
+      html += recent.map(em => `<button type="button" class="picker-emoji-btn" onclick="insertEmoji('${em}')" title="Chèn ${em}">${em}</button>`).join('');
+      html += `</div>`;
+    }
+  }
+
+  let totalMatched = 0;
+  PICKER_EMOJI_GROUPS.forEach(group => {
+    const filtered = q
+      ? group.items.filter(it => it.c.includes(q) || it.k.includes(q))
+      : group.items;
+    if (filtered.length > 0) {
+      totalMatched += filtered.length;
+      html += `<div class="picker-section-title">${escapeHtml(group.title)}</div><div class="picker-emoji-grid">`;
+      html += filtered.map(it => `<button type="button" class="picker-emoji-btn" onclick="insertEmoji('${it.c}')" title="${escapeHtml(it.k.split(' ')[0])}">${it.c}</button>`).join('');
+      html += `</div>`;
+    }
+  });
+
+  if (totalMatched === 0) {
+    html = `<div class="picker-empty">Không tìm thấy biểu tượng phù hợp.</div>`;
+  }
+  panel.innerHTML = html;
+}
+
+function renderStickerPanel(pack, query) {
+  const panel = document.getElementById('pickerPanel-sticker');
+  if (!panel) return;
+  const q = (query || '').toLowerCase();
+  const filtered = PICKER_STICKERS.filter(s => {
+    const matchPack = (pack === 'all') || (s.pack === pack);
+    const matchQuery = !q || s.label.toLowerCase().includes(q) || s.id.includes(q) || s.pack.includes(q);
+    return matchPack && matchQuery;
+  });
+
+  if (filtered.length === 0) {
+    panel.innerHTML = `<div class="picker-empty" style="grid-column: 1 / -1;">Không tìm thấy sticker phù hợp.</div>`;
+    return;
+  }
+
+  panel.innerHTML = filtered.map(s =>
+    `<button type="button" class="picker-sticker-btn" onclick="sendSticker('${s.pack}','${s.id}','${s.url}')" title="${escapeHtml(s.label)}">
+       <img src="${s.url}" alt="${escapeHtml(s.label)}" loading="lazy" />
+     </button>`
+  ).join('');
+}
+
+function renderGifPanel(query) {
+  const panel = document.getElementById('pickerPanel-gif');
+  if (!panel) return;
+  const raw = (query || '').trim();
+  const q = raw.toLowerCase();
+
+  // Ho tro dan URL .gif truc tiep de gui
+  const isGifUrl = /^https?:\/\/.+\.(gif|webp)(\?.*)?$/i.test(raw);
+  if (isGifUrl) {
+    panel.innerHTML = `
+      <div class="picker-gif-url-card" style="grid-column: 1 / -1;">
+        <img src="${escapeHtml(raw)}" alt="GIF Preview" onerror="this.style.display='none'" />
+        <button type="button" class="btn btn-primary btn-sm" onclick="sendGif('${escapeHtml(raw)}','GIF')">Gửi GIF này</button>
+      </div>
+    `;
+    return;
+  }
+
+  const filtered = q
+    ? PICKER_GIFS.filter(g => g.title.toLowerCase().includes(q) || g.keywords.includes(q))
+    : PICKER_GIFS;
+
+  if (filtered.length === 0) {
+    panel.innerHTML = `<div class="picker-empty" style="grid-column: 1 / -1;">Không có GIF khớp từ khóa. Bạn có thể dán trực tiếp link .gif vào ô tìm kiếm.</div>`;
+    return;
+  }
+
+  panel.innerHTML = filtered.map(g =>
+    `<button type="button" class="picker-gif-btn" onclick="sendGif('${g.url}','${escapeHtml(g.title)}')" title="Gửi GIF: ${escapeHtml(g.title)}">
+       <img src="${g.url}" alt="${escapeHtml(g.title)}" loading="lazy" />
+       <span class="gif-badge">GIF</span>
+     </button>`
+  ).join('');
+}
+
 function togglePicker(force) {
   const p = document.getElementById('pickerPopup');
   if (!p) return;
-  if (typeof force === 'boolean') {
-    p.style.display = force ? 'flex' : 'none';
-  } else {
-    p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
+  initPickerCatalog();
+  const willOpen = (typeof force === 'boolean') ? force : (p.style.display !== 'flex');
+  p.style.display = willOpen ? 'flex' : 'none';
+  if (willOpen) {
+    switchPickerTab(activePickerTab);
   }
 }
 
 function switchPickerTab(tabName) {
-  document.querySelectorAll('.picker-tab').forEach(b => b.classList.remove('active'));
+  activePickerTab = tabName || 'emoji';
+  document.querySelectorAll('.picker-tab').forEach(b => {
+    const isActive = (b.id === 'tabBtn-' + activePickerTab);
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+  });
   document.querySelectorAll('.picker-panel').forEach(p => p.style.display = 'none');
 
-  const tabBtn = document.getElementById('tabBtn-' + tabName);
-  const panel = document.getElementById('pickerPanel-' + tabName);
-  if (tabBtn) tabBtn.classList.add('active');
-  if (panel) panel.style.display = 'grid';
+  const panel = document.getElementById('pickerPanel-' + activePickerTab);
+  if (panel) {
+    panel.style.display = (activePickerTab === 'emoji') ? 'block' : 'grid';
+  }
+
+  const packBar = document.getElementById('stickerPackBar');
+  if (packBar) {
+    packBar.style.display = (activePickerTab === 'sticker') ? 'flex' : 'none';
+  }
+
+  const searchInput = document.getElementById('pickerSearchInput');
+  if (searchInput) {
+    if (activePickerTab === 'emoji') searchInput.placeholder = 'Tìm biểu tượng cảm xúc...';
+    else if (activePickerTab === 'sticker') searchInput.placeholder = 'Tìm nhãn dán (Mèo, Dev, Cảm xúc)...';
+    else searchInput.placeholder = 'Tìm GIF hoặc dán đường dẫn .gif...';
+  }
+  filterPickerItems();
+}
+
+function filterStickerPack(pack) {
+  activeStickerPack = pack || 'all';
+  document.querySelectorAll('.picker-subtab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.pack === activeStickerPack);
+  });
+  renderStickerPanel(activeStickerPack, getPickerQuery());
+}
+
+function filterPickerItems() {
+  const q = getPickerQuery();
+  const clearBtn = document.getElementById('pickerSearchClear');
+  if (clearBtn) {
+    clearBtn.style.display = q ? 'inline-flex' : 'none';
+  }
+  if (activePickerTab === 'emoji') {
+    renderEmojiPanel(q);
+  } else if (activePickerTab === 'sticker') {
+    renderStickerPanel(activeStickerPack, q);
+  } else if (activePickerTab === 'gif') {
+    renderGifPanel(q);
+  }
+}
+
+function clearPickerSearch() {
+  const input = document.getElementById('pickerSearchInput');
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+  filterPickerItems();
 }
 
 function toggleTheme() {
@@ -941,6 +1238,7 @@ function copyRoomCode(code) {
 function buildMessagePreview(msg) {
   if (!msg) return '';
   if (msg.type === 'STICKER') return '[Sticker]';
+  if (msg.type === 'GIF') return '[GIF]';
   if (msg.type === 'FILE') {
     const fName = (msg.extraData && msg.extraData.fileName) ? msg.extraData.fileName : 'Tệp đính kèm';
     return '[Tệp] ' + fName;
