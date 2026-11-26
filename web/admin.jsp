@@ -24,7 +24,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>403 Forbidden - Quyền Truy Cập Bị Từ Chối</title>
     <!-- Cache-busting CSS query -->
-    <link rel="stylesheet" href="css/style.css?v=9.0.<%= System.currentTimeMillis() %>">
+    <link rel="stylesheet" href="css/style.css?v=10.0.<%= System.currentTimeMillis() %>">
+    <script src="js/notify.js?v=1.0.<%= System.currentTimeMillis() %>" defer></script>
 </head>
 <body>
 <div class="forbidden-container">
@@ -79,7 +80,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảng Quản Trị Admin - UDP Multichat Enterprise</title>
     <!-- Cache-busting CSS query -->
-    <link rel="stylesheet" href="css/style.css?v=9.0.<%= System.currentTimeMillis() %>">
+    <link rel="stylesheet" href="css/style.css?v=10.0.<%= System.currentTimeMillis() %>">
+    <script src="js/notify.js?v=1.0.<%= System.currentTimeMillis() %>" defer></script>
 </head>
 <body>
 
@@ -492,7 +494,16 @@
 
 <script>
     async function kickUser(uid, uname) {
-        if (!confirm('Bạn có chắc chắn muốn mời thành viên [' + uname + '] ra khỏi phòng qua lệnh socket?')) return;
+        const ok = await AppNotify.confirm({
+            badge: 'Lệnh Quản trị',
+            icon: 'shield',
+            tone: 'danger',
+            title: 'Mời thành viên rời phòng?',
+            message: 'Thành viên [' + uname + '] sẽ ngay lập tức bị ngắt kết nối khỏi phòng qua tín hiệu socket.',
+            confirmText: 'Mời ra ngay',
+            cancelText: 'Giữ lại'
+        });
+        if (!ok) return;
 
         const body = new URLSearchParams({
             action: 'kick',
@@ -507,10 +518,14 @@
                 body: body.toString()
             });
             const res = await resp.json();
-            alert(res.message);
-            window.location.reload();
+            if (res.success) {
+                AppNotify.defer(res.message || 'Đã mời thành viên rời phòng.', { type: 'success', tag: 'Đã xử lý' });
+                window.location.reload();
+            } else {
+                AppNotify.error(res.message || 'Không thể mời thành viên này.', { tag: 'Từ chối thao tác' });
+            }
         } catch (e) {
-            alert('Lỗi thực thi lệnh Admin kick.');
+            AppNotify.error('Không thể gửi lệnh Admin kick qua mạng.', { tag: 'Lỗi kết nối' });
         }
     }
 
@@ -528,10 +543,14 @@
                 body: body.toString()
             });
             const res = await resp.json();
-            alert(res.message);
-            window.location.reload();
+            if (res.success) {
+                AppNotify.defer(res.message, { type: 'info', tag: res.muted ? 'Đã tắt tiếng' : 'Đã bật tiếng' });
+                window.location.reload();
+            } else {
+                AppNotify.error(res.message || 'Không thể thay đổi trạng thái tiếng.', { tag: 'Thao tác lỗi' });
+            }
         } catch (e) {
-            alert('Lỗi thực thi lệnh Admin mute.');
+            AppNotify.error('Lỗi thực thi lệnh Admin mute.', { tag: 'Mất tín hiệu' });
         }
     }
 
@@ -572,20 +591,34 @@
             });
             const res = await resp.json();
             if (res.success) {
-                alert('Trạng thái phòng #' + code + ' đã chuyển thành: ' + res.status);
+                const isLocked = res.status === 'LOCKED';
+                AppNotify.defer(
+                    isLocked ? 'Phòng #' + code + ' đã tạm khóa — chỉ Admin được gửi tin.' : 'Phòng #' + code + ' đã mở khóa trở lại!',
+                    { type: isLocked ? 'warning' : 'success', tag: isLocked ? 'Đã khóa phòng' : 'Đã mở khóa', code: '#' + code }
+                );
                 window.location.reload();
             } else {
-                alert(res.message || 'Không thể chuyển trạng thái phòng.');
+                AppNotify.error(res.message || 'Không thể chuyển trạng thái phòng.', { tag: 'Thất bại' });
             }
         } catch (e) {
-            alert('Lỗi chuyển trạng thái phòng.');
+            AppNotify.error('Lỗi chuyển trạng thái phòng.', { tag: 'Mất tín hiệu' });
         }
     }
 
     async function clearRoomChat(targetRoomCode) {
         const code = targetRoomCode || '<%= (room != null) ? room.getRoomCode() : "" %>';
         if (!code) return;
-        if (!confirm('Bạn có chắc muốn làm sạch toàn bộ lịch sử trò chuyện trong phòng #' + code + '?')) return;
+        const ok = await AppNotify.confirm({
+            badge: 'Làm sạch phòng #' + code,
+            icon: 'danger',
+            tone: 'danger',
+            title: 'Quét sạch lịch sử trò chuyện?',
+            message: 'Toàn bộ tin nhắn trong phòng #' + code + ' sẽ bị xóa trắng và không thể khôi phục.',
+            confirmText: 'Xóa sạch ngay',
+            cancelText: 'Giữ lại'
+        });
+        if (!ok) return;
+
         const body = new URLSearchParams({
             action: 'clear_chat',
             roomCode: code
@@ -598,19 +631,30 @@
                 body: body.toString()
             });
             const res = await resp.json();
-            alert(res.message);
             if (res.success) {
+                AppNotify.defer(res.message || 'Đã làm sạch lịch sử chat.', { type: 'success', tag: 'Phòng sạch tinh tươm', code: '#' + code });
                 window.location.reload();
+            } else {
+                AppNotify.error(res.message || 'Không thể làm sạch lịch sử.', { tag: 'Thất bại' });
             }
         } catch (e) {
-            alert('Lỗi làm sạch lịch sử chat.');
+            AppNotify.error('Lỗi làm sạch lịch sử chat.', { tag: 'Mất tín hiệu' });
         }
     }
 
     async function deleteRoom(targetRoomCode, redirectAll) {
         const code = targetRoomCode || '<%= (room != null) ? room.getRoomCode() : "" %>';
         if (!code) return;
-        if (!confirm('Bạn có chắc chắn muốn giải tán và xóa vĩnh viễn phòng #' + code + '?')) return;
+        const ok = await AppNotify.confirm({
+            badge: 'Giải tán kênh #' + code,
+            icon: 'danger',
+            tone: 'danger',
+            title: 'Xóa vĩnh viễn phòng chat này?',
+            message: 'Kênh UDP Multicast của phòng #' + code + ' sẽ đóng hoàn toàn và toàn bộ thành viên bị ngắt kết nối.',
+            confirmText: 'Giải tán phòng',
+            cancelText: 'Hủy'
+        });
+        if (!ok) return;
 
         const body = new URLSearchParams({
             action: 'delete_room',
@@ -624,16 +668,18 @@
                 body: body.toString()
             });
             const res = await resp.json();
-            alert(res.message);
             if (res.success) {
+                AppNotify.defer(res.message, { type: 'success', tag: 'Đã giải tán phòng', code: '#' + code });
                 if (redirectAll) {
                     window.location.href = 'admin.jsp?all=1';
                 } else {
                     window.location.reload();
                 }
+            } else {
+                AppNotify.error(res.message || 'Không thể xóa phòng.', { tag: 'Thất bại' });
             }
         } catch (e) {
-            alert('Lỗi thực thi lệnh xóa phòng.');
+            AppNotify.error('Lỗi thực thi lệnh xóa phòng.', { tag: 'Mất tín hiệu' });
         }
     }
 

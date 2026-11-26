@@ -14,7 +14,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng Nhập &amp; Đăng Ký - UDP Multichat Enterprise</title>
     <!-- Cache-busting CSS query -->
-    <link rel="stylesheet" href="css/style.css?v=9.0.<%= System.currentTimeMillis() %>">
+    <link rel="stylesheet" href="css/style.css?v=10.0.<%= System.currentTimeMillis() %>">
+    <script src="js/notify.js?v=1.0.<%= System.currentTimeMillis() %>" defer></script>
 </head>
 <body>
 
@@ -260,17 +261,13 @@
     function showAlert(msg, isSuccess) {
         const a = document.getElementById('authAlert');
         if (!a) return;
-        a.innerText = msg;
+        const iconSvg = isSuccess
+            ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'
+            : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+        a.className = 'auth-alert ' + (isSuccess ? 'is-success' : 'is-error');
+        a.style.cssText = '';
+        a.innerHTML = `${iconSvg}<span>${msg}</span>`;
         a.style.display = 'flex';
-        if (isSuccess) {
-            a.style.background = '#dcfce7';
-            a.style.color = '#15803d';
-            a.style.border = '1px solid #86efac';
-        } else {
-            a.style.background = '#fee2e2';
-            a.style.color = '#b91c1c';
-            a.style.border = '1px solid #fca5a5';
-        }
     }
 
     function quickFill(user, pass, element) {

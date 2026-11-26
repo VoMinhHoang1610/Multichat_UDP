@@ -57,14 +57,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title><%= room.getRoomName() %> - UDP Multichat Enterprise</title>
     <!-- Dynamic cache-busting -->
-    <link rel="stylesheet" href="css/style.css?v=10.0.<%= System.currentTimeMillis() %>">
+    <link rel="stylesheet" href="css/style.css?v=11.0.<%= System.currentTimeMillis() %>">
     <script>
         const savedTheme = localStorage.getItem('udp_theme');
         if (savedTheme) {
             document.documentElement.setAttribute('data-theme', savedTheme);
         }
     </script>
-    <script src="js/chat.js?v=6.0.<%= System.currentTimeMillis() %>" defer></script>
+    <script src="js/notify.js?v=1.0.<%= System.currentTimeMillis() %>" defer></script>
+    <script src="js/chat.js?v=7.0.<%= System.currentTimeMillis() %>" defer></script>
 </head>
 <body class="in-chat">
 
@@ -153,15 +154,32 @@
 
         <!-- 2. ROOM LOCKED BANNER (If room is locked) -->
         <div id="roomLockedBanner" style="display: <%= "LOCKED".equalsIgnoreCase(room.getStatus()) ? "block" : "none" %>;" class="room-locked-bar">
-            🔒 Phòng chat hiện đang bị Quản trị viên tạm khóa. Bạn chỉ có thể xem nội dung.
+            <div class="room-locked-inner">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span class="sys-label-tag tag-warn">Tạm khóa</span>
+                <span>Phòng chat đang ở chế độ chỉ đọc — Quản trị viên đã tạm khóa gửi tin mới.</span>
+            </div>
         </div>
 
         <!-- 3. CHAT MESSAGES SCROLL CONTAINER (Bounded width on desktop, 100% on mobile) -->
         <div class="chat-messages-container" id="chatMessagesContainer">
             <div class="chat-messages" id="chatMessages">
                 <div class="msg-row system">
-                    <div class="msg-bubble">
-                        Phòng chat UDP Multicast <strong><%= room.getRoomName() %></strong> đã kết nối. Chào mừng <strong><%= user.getUsername() %></strong>!
+                    <div class="msg-bubble sys-variant-connect">
+                        <span class="sys-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"></path>
+                                <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"></path>
+                                <circle cx="12" cy="12" r="2"></circle>
+                                <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"></path>
+                                <path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"></path>
+                            </svg>
+                        </span>
+                        <span class="sys-label-tag tag-info">Bắt sóng thành công</span>
+                        <span>Chào mừng <strong><%= user.getUsername() %></strong> đã kết nối vào kênh UDP <strong><%= room.getRoomName() %></strong>!</span>
                     </div>
                 </div>
             </div>
@@ -739,30 +757,39 @@
             });
             const res = await resp.json();
             if (res.success) {
-                alert('Cập nhật thông tin thành công!');
+                AppNotify.success('Diện mạo mới đã được đồng bộ cho cả phòng!', { tag: 'Hồ sơ mới' });
                 document.getElementById('myName').innerText = res.user.username;
                 document.getElementById('myAvatar').src = res.user.avatarUrl;
                 currentUser.username = res.user.username;
                 currentUser.avatarUrl = res.user.avatarUrl;
                 closeProfileModal();
             } else {
-                alert(res.message || 'Lỗi cập nhật.');
+                AppNotify.error(res.message || 'Không thể lưu thay đổi hồ sơ.', { tag: 'Cập nhật lỗi' });
             }
         } catch (err) {
-            alert('Lỗi kết nối khi cập nhật hồ sơ.');
+            AppNotify.error('Lỗi kết nối khi cập nhật hồ sơ cá nhân.', { tag: 'Mất tín hiệu' });
         }
     }
 
     <% if (isAdmin) { %>
     async function adminClearChat() {
-        if (!confirm('Bạn có chắc muốn xóa sạch toàn bộ lịch sử tin nhắn của phòng?')) return;
+        const ok = await AppNotify.confirm({
+            badge: 'Lệnh Quản trị',
+            icon: 'danger',
+            tone: 'danger',
+            title: 'Quét sạch toàn bộ lịch sử chat?',
+            message: 'Mọi tin nhắn trong phòng sẽ bị xóa trắng ngay lập tức và không thể khôi phục.',
+            confirmText: 'Xóa sạch ngay',
+            cancelText: 'Giữ lại'
+        });
+        if (!ok) return;
         const body = new URLSearchParams({
             action: 'clear_chat',
             roomCode: '<%= room.getRoomCode() %>'
         });
         const resp = await fetch('api/admin', { method: 'POST', body: body.toString(), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
         const res = await resp.json();
-        alert(res.message);
+        AppNotify.success(res.message || 'Đã làm sạch lịch sử chat.', { tag: 'Phòng sạch tinh tươm' });
         document.getElementById('chatMessages').innerHTML = '';
     }
 
@@ -773,11 +800,18 @@
         });
         const resp = await fetch('api/admin', { method: 'POST', body: body.toString(), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
         const res = await resp.json();
-        alert('Trạng thái phòng hiện tại: ' + res.status);
+        const isLocked = res.status === 'LOCKED';
+        AppNotify.toast(
+            isLocked ? 'Phòng đã chuyển sang chế độ Tạm khóa (Chỉ đọc).' : 'Phòng đã mở khóa — mọi người có thể chat trở lại!',
+            { type: isLocked ? 'warning' : 'success', tag: isLocked ? 'Khóa phòng' : 'Mở khóa phòng', code: res.status }
+        );
         const b = document.getElementById('roomStatusBadge');
-        if (b) b.innerText = res.status;
+        if (b) {
+            b.innerText = res.status;
+            b.className = 'badge ' + (res.status === 'ACTIVE' ? 'badge-online' : 'badge-admin');
+        }
         const lockBanner = document.getElementById('roomLockedBanner');
-        if (lockBanner) lockBanner.style.display = (res.status === 'LOCKED') ? 'block' : 'none';
+        if (lockBanner) lockBanner.style.display = isLocked ? 'block' : 'none';
     }
     <% } %>
 
@@ -803,7 +837,16 @@
     }
 
     async function leaveRoom() {
-        if (!confirm('Bạn có muốn rời khỏi phòng chat này và quay về Sảnh chờ?')) return;
+        const ok = await AppNotify.confirm({
+            badge: 'Ngắt kết nối kênh',
+            icon: 'leave',
+            tone: 'warning',
+            title: 'Rời phòng chat này?',
+            message: 'Bạn sẽ thoát khỏi phòng hiện tại và quay trở về Sảnh Chờ.',
+            confirmText: 'Rời phòng',
+            cancelText: 'Ở lại'
+        });
+        if (!ok) return;
         await performLeaveRoom();
     }
 </script>

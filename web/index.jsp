@@ -21,7 +21,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sảnh Chờ Phòng Chat - UDP Multichat Enterprise</title>
     <!-- Cache-busting CSS query -->
-    <link rel="stylesheet" href="css/style.css?v=9.0.<%= System.currentTimeMillis() %>">
+    <link rel="stylesheet" href="css/style.css?v=10.0.<%= System.currentTimeMillis() %>">
+    <script src="js/notify.js?v=1.0.<%= System.currentTimeMillis() %>" defer></script>
 </head>
 <body>
 
@@ -318,7 +319,7 @@
 
     async function executeJoin(roomCode) {
         if (!roomCode) {
-            alert('Vui lòng nhập mã phòng!');
+            AppNotify.warning('Bạn quên nhập mã phòng rồi — thử #LTM2026 xem sao!', { tag: 'Thiếu mã phòng' });
             return;
         }
 
@@ -336,12 +337,13 @@
 
             const data = await resp.json();
             if (data.success) {
+                AppNotify.defer('Đã bắt được sóng phòng #' + data.roomCode + '!', { type: 'success', tag: 'Kết nối thành công', code: '#' + data.roomCode });
                 window.location.href = 'chat.jsp?room=' + encodeURIComponent(data.roomCode);
             } else {
-                alert(data.message || 'Không thể vào phòng chat!');
+                AppNotify.error(data.message || 'Không thể vào phòng chat!', { tag: 'Không thể tham gia' });
             }
         } catch (err) {
-            alert('Lỗi kết nối khi tham gia phòng chat.');
+            AppNotify.error('Sóng UDP đang chập chờn — kiểm tra kết nối rồi thử lại nhé.', { tag: 'Mất tín hiệu' });
         }
     }
 
@@ -373,18 +375,27 @@
 
             const data = await resp.json();
             if (data.success) {
-                alert('Khởi tạo phòng chat thành công!');
+                AppNotify.defer('Phòng #' + data.roomCode + ' đã lên sóng thành công!', { type: 'success', tag: 'Khởi tạo hoàn tất', code: '#' + data.roomCode });
                 window.location.href = 'chat.jsp?room=' + encodeURIComponent(data.roomCode);
             } else {
-                alert(data.message || 'Không thể tạo phòng chat.');
+                AppNotify.error(data.message || 'Không thể tạo phòng chat.', { tag: 'Khởi tạo thất bại' });
             }
         } catch (err) {
-            alert('Lỗi kết nối khi khởi tạo phòng chat.');
+            AppNotify.error('Lỗi kết nối khi khởi tạo kênh UDP mới.', { tag: 'Mất tín hiệu' });
         }
     }
 
     async function handleLogout() {
-        if (!confirm('Bạn có chắc muốn đăng xuất khỏi hệ thống?')) return;
+        const ok = await AppNotify.confirm({
+            badge: 'Phiên đăng nhập',
+            icon: 'leave',
+            tone: 'warning',
+            title: 'Tạm biệt, hẹn gặp lại?',
+            message: 'Bạn có chắc muốn ngắt kết nối và đăng xuất khỏi tài khoản hiện tại?',
+            confirmText: 'Đăng xuất',
+            cancelText: 'Ở lại'
+        });
+        if (!ok) return;
         await fetch('api/auth?action=logout', { method: 'POST' });
         window.location.href = 'login.jsp';
     }

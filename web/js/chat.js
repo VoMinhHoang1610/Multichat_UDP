@@ -54,7 +54,11 @@ function hideMessageForMe(msgKey) {
   }
 }
 
-function showToast(text) {
+function showToast(text, type, tag) {
+  if (window.AppNotify) {
+    AppNotify.toast(text, { type: type || 'success', tag: tag || 'Thông báo' });
+    return;
+  }
   let toast = document.getElementById('chatToastNotice');
   if (!toast) {
     toast = document.createElement('div');
@@ -194,8 +198,17 @@ async function pollMessages() {
     if (data.success) {
       // Kiem tra neu bi Admin kick
       if (data.isKicked) {
-        clearInterval(pollTimer);
-        alert('Bạn đã bị Quản trị viên mời ra khỏi phòng chat!');
+        stopPollingForLeave();
+        if (window.AppNotify) {
+          await AppNotify.modalAlert({
+            badge: 'Quyền Quản trị',
+            icon: 'shield',
+            tone: 'danger',
+            title: 'Bạn vừa được mời rời phòng',
+            message: 'Quản trị viên đã ngắt kết nối của bạn khỏi phòng chat này.',
+            confirmText: 'Về Sảnh Chờ'
+          });
+        }
         window.location.href = 'index.jsp';
         return;
       }
@@ -309,7 +322,37 @@ function appendMessage(msg) {
   row.className = `msg-row ${isSystem ? 'system' : (isSelf ? 'self' : 'other')} ${isWhisper ? 'whisper' : ''} ${isRecalled ? 'recalled' : ''}`;
 
   if (isSystem) {
-    row.innerHTML = `<div class="msg-bubble">${escapeHtml(msg.content)} <span class="msg-time">${msg.formattedTime || ''}</span></div>`;
+    let sysVariant = 'sys-variant-info';
+    let sysTag = 'Hệ thống';
+    let sysTagClass = 'tag-info';
+    let sysIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+
+    if (msg.type === 'JOIN') {
+      sysVariant = 'sys-variant-join';
+      sysTag = 'Gia nhập sóng';
+      sysTagClass = 'tag-join';
+      sysIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>';
+    } else if (msg.type === 'LEAVE') {
+      sysVariant = 'sys-variant-leave';
+      sysTag = 'Rời tần số';
+      sysTagClass = 'tag-leave';
+      sysIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>';
+    } else if (msg.type === 'PROFILE_UPDATE') {
+      sysVariant = 'sys-variant-profile';
+      sysTag = 'Diện mạo mới';
+      sysTagClass = 'tag-profile';
+      sysIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>';
+    } else {
+      const lowerContent = (msg.content || '').toLowerCase();
+      if (lowerContent.includes('khóa phòng') || lowerContent.includes('tắt tiếng') || lowerContent.includes('mời') || lowerContent.includes('làm sạch')) {
+        sysVariant = 'sys-variant-warn';
+        sysTag = 'Lệnh Quản trị';
+        sysTagClass = 'tag-warn';
+        sysIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>';
+      }
+    }
+
+    row.innerHTML = `<div class="msg-bubble ${sysVariant}"><span class="sys-icon">${sysIcon}</span><span class="sys-label-tag ${sysTagClass}">${sysTag}</span><span>${escapeHtml(msg.content)}</span><span class="msg-time">${msg.formattedTime || ''}</span></div>`;
     container.appendChild(row);
     return true;
   }
@@ -409,10 +452,11 @@ function appendMessage(msg) {
   const avatarSrc = msg.avatarUrl || 'assets/avatars/avatar1.svg';
   let whisperTag = '';
   if (isWhisper) {
+    const lockSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
     if (isSelf) {
-      whisperTag = `<span class="badge badge-whisper">🔒 Riêng tới ${escapeHtml(msg.targetUser || '')}</span>`;
+      whisperTag = `<span class="badge badge-whisper">${lockSvg}Riêng tới ${escapeHtml(msg.targetUser || '')}</span>`;
     } else {
-      whisperTag = `<span class="badge badge-whisper">🔒 ${escapeHtml(msg.senderName || 'Ai đó')} nhắn riêng cho bạn</span>`;
+      whisperTag = `<span class="badge badge-whisper">${lockSvg}${escapeHtml(msg.senderName || 'Ai đó')} nhắn riêng</span>`;
     }
   }
 
@@ -580,13 +624,13 @@ async function sendChatMessage() {
     });
     const res = await resp.json();
     if (!res.success) {
-      alert(res.message || 'Không thể gửi tin nhắn.');
+      AppNotify.error(res.message || 'Không thể gửi tin nhắn.', { tag: 'Gửi thất bại' });
     } else {
       clearReply();
       pollMessages();
     }
   } catch (err) {
-    alert('Lỗi kết nối khi gửi tin nhắn UDP.');
+    AppNotify.error('Sóng UDP đang chập chờn — thử gửi lại nhé.', { tag: 'Mất tín hiệu' });
   }
 }
 
@@ -618,13 +662,13 @@ async function sendSticker(pack, stickerId, stickerUrl) {
     });
     const res = await resp.json();
     if (!res.success) {
-      alert(res.message || 'Không thể gửi sticker.');
+      AppNotify.error(res.message || 'Không thể gửi sticker.', { tag: 'Gửi thất bại' });
     } else {
       clearReply();
       pollMessages();
     }
   } catch (err) {
-    alert('Lỗi gửi sticker.');
+    AppNotify.error('Không thể gửi sticker lúc này.', { tag: 'Mất tín hiệu' });
   }
 }
 
@@ -655,13 +699,13 @@ async function sendGif(gifUrl, title) {
     });
     const res = await resp.json();
     if (!res.success) {
-      alert(res.message || 'Không thể gửi GIF.');
+      AppNotify.error(res.message || 'Không thể gửi GIF.', { tag: 'Gửi thất bại' });
     } else {
       clearReply();
       pollMessages();
     }
   } catch (err) {
-    alert('Lỗi kết nối khi gửi GIF.');
+    AppNotify.error('Không thể truyền ảnh động GIF lúc này.', { tag: 'Mất tín hiệu' });
   }
 }
 
@@ -707,11 +751,13 @@ async function uploadFile(fileInput) {
     });
     const res = await resp.json();
     if (!res.success) {
-      alert(res.message || 'Lỗi tải lên tệp.');
+      AppNotify.error(res.message || 'Không thể tải lên tệp.', { tag: 'Tải lên lỗi' });
+    } else {
+      AppNotify.success('Đã phát tệp đính kèm qua kênh UDP!', { tag: 'Đã gửi tệp' });
     }
     fileInput.value = '';
   } catch (e) {
-    alert('Lỗi kết nối khi tải lên tệp.');
+    AppNotify.error('Mất kết nối khi truyền tệp lên máy chủ.', { tag: 'Mất tín hiệu' });
   }
 }
 
@@ -748,11 +794,13 @@ async function uploadFolder(folderInput) {
     });
     const res = await resp.json();
     if (!res.success) {
-      alert(res.message || 'Lỗi tải lên thư mục.');
+      AppNotify.error(res.message || 'Không thể tải lên thư mục.', { tag: 'Tải lên lỗi' });
+    } else {
+      AppNotify.success('Đã nén ZIP và phát thư mục vào phòng!', { tag: 'Đã gửi thư mục' });
     }
     folderInput.value = '';
   } catch (e) {
-    alert('Lỗi khi tải lên thư mục.');
+    AppNotify.error('Lỗi kết nối khi tải lên thư mục.', { tag: 'Mất tín hiệu' });
   }
 }
 
@@ -1236,7 +1284,7 @@ function escapeHtml(s) {
 
 function copyRoomCode(code) {
   navigator.clipboard.writeText(code).then(() => {
-    alert('Đã sao chép mã phòng: ' + code);
+    showToast('Mã phòng đã nằm gọn trong bộ nhớ tạm — gửi cho bạn bè ngay!', 'success', 'Đã sao chép #' + code);
   });
 }
 
@@ -1292,7 +1340,7 @@ function clearReply() {
 function scrollToMessage(msgDomId) {
   const el = document.getElementById(msgDomId);
   if (!el) {
-    showToast('Tin nhắn gốc không còn trong khung chat hiện tại.');
+    showToast('Tin nhắn gốc đã trôi khỏi khung hiển thị hiện tại.', 'warning', 'Không tìm thấy');
     return;
   }
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1304,9 +1352,9 @@ function copyMessageContent(msgKey) {
   const msg = messageStore.get(msgKey);
   if (!msg || !msg.content) return;
   navigator.clipboard.writeText(msg.content).then(() => {
-    showToast('Đã sao chép tin nhắn');
+    showToast('Đã chép nội dung tin nhắn vào bộ nhớ tạm.', 'success', 'Đã sao chép');
   }).catch(() => {
-    showToast('Không thể sao chép tự động');
+    showToast('Trình duyệt không cho phép sao chép tự động.', 'warning', 'Thử thủ công');
   });
 }
 
@@ -1321,13 +1369,22 @@ function deleteMessageForMe(msgKey) {
     const el = document.querySelector(`[data-msg-key="${CSS.escape(msgKey)}"]`);
     if (el) el.remove();
   }
-  showToast('Đã xóa tin nhắn ở phía bạn');
+  showToast('Tin nhắn đã được ẩn khỏi màn hình của bạn.', 'info', 'Đã dọn dẹp');
 }
 
 async function recallMessage(msgKey) {
   const msg = messageStore.get(msgKey);
   if (!msg) return;
-  if (!confirm('Thu hồi tin nhắn này với tất cả mọi người?')) return;
+  const ok = await AppNotify.confirm({
+    badge: 'Thu hồi tin nhắn',
+    icon: 'danger',
+    tone: 'danger',
+    title: 'Thu hồi lời vừa gửi?',
+    message: 'Nội dung này sẽ biến mất với toàn bộ thành viên trong phòng chat.',
+    confirmText: 'Thu hồi ngay',
+    cancelText: 'Giữ lại'
+  });
+  if (!ok) return;
 
   const postData = new URLSearchParams();
   postData.append('action', 'recall');
@@ -1342,13 +1399,14 @@ async function recallMessage(msgKey) {
     });
     const res = await resp.json();
     if (!res.success) {
-      alert(res.message || 'Không thể thu hồi tin nhắn.');
+      AppNotify.error(res.message || 'Không thể thu hồi tin nhắn.', { tag: 'Thu hồi thất bại' });
     } else {
       applyRecalledState(msg.timestamp, msg.senderId);
+      showToast('Tin nhắn đã được thu hồi với cả phòng.', 'success', 'Đã thu hồi');
       pollMessages();
     }
   } catch (e) {
-    alert('Lỗi kết nối khi thu hồi tin nhắn.');
+    AppNotify.error('Lỗi kết nối khi gửi yêu cầu thu hồi.', { tag: 'Mất tín hiệu' });
   }
 }
 
