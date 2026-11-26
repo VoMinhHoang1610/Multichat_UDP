@@ -10,6 +10,7 @@ let currentUser = null;
 let lastTimestamp = 0;
 let pollTimer = null;
 let isAudioEnabled = true;
+let isLeavingRoom = false;
 let selectedWhisper = { userId: '', username: '' };
 let replyingTo = null; // { msgKey, msgDomId, senderName, preview }
 const messageStore = new Map();
@@ -174,9 +175,17 @@ function initChat(roomData, userData) {
   });
 }
 
+function stopPollingForLeave() {
+  isLeavingRoom = true;
+  if (pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+}
+
 // Lay tin nhan moi va danh sach thanh vien
 async function pollMessages() {
-  if (!currentRoom) return;
+  if (!currentRoom || isLeavingRoom) return;
 
   try {
     const resp = await fetch(`api/chat?action=poll&roomCode=${encodeURIComponent(currentRoom.roomCode)}&since=${lastTimestamp}`);

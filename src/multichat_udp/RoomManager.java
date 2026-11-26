@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class RoomManager {
     private static final RoomManager INSTANCE = new RoomManager();
-    private static final long USER_TIMEOUT_MS = 25000; // 25 giay khong hoat dong xem la offline
+    private static final long USER_TIMEOUT_MS = 90000; // 90 giay khong hoat dong xem la offline
 
     private final ConcurrentHashMap<String, ChatRoom> rooms = new ConcurrentHashMap<>();
     private final ScheduledExecutorService cleanupExecutor;
@@ -98,6 +98,20 @@ public class RoomManager {
         if (room != null && room.verifyAdminPin(adminPin)) {
             room.closeUDP();
             rooms.remove(roomCode.trim().toUpperCase());
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Xoa phong chat boi Quan tri vien (da xac thuc RBAC).
+     */
+    public synchronized boolean deleteRoomByAdmin(String roomCode) {
+        if (roomCode == null) return false;
+        String normalized = roomCode.trim().toUpperCase();
+        ChatRoom room = rooms.remove(normalized);
+        if (room != null) {
+            room.closeUDP();
             return true;
         }
         return false;

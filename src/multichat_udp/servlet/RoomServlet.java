@@ -108,6 +108,7 @@ public class RoomServlet extends HttpServlet {
             );
             profile.setBio(account.getBio());
             profile.setEmail(account.getEmail());
+            room.clearKickedUser(profile.getUserId());
             room.addUser(profile);
 
             session.setAttribute("user", profile);

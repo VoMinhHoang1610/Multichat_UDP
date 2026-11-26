@@ -26,6 +26,8 @@
         return;
     }
 
+    boolean isAdmin = Boolean.TRUE.equals(session.getAttribute("isAdmin")) || account.isAdmin();
+
     UserProfile user = (UserProfile) session.getAttribute("user");
     if (user == null) {
         user = new UserProfile(
@@ -37,11 +39,16 @@
         );
         user.setBio(account.getBio());
         user.setEmail(account.getEmail());
-        room.addUser(user);
         session.setAttribute("user", user);
     }
 
-    boolean isAdmin = Boolean.TRUE.equals(session.getAttribute("isAdmin"));
+    if (!isAdmin && room.isUserKicked(user.getUserId())) {
+        response.sendRedirect("index.jsp");
+        return;
+    }
+
+    session.setAttribute("roomCode", room.getRoomCode());
+    room.addUser(user);
 %>
 <!DOCTYPE html>
 <html lang="vi" data-theme="light">
@@ -73,7 +80,7 @@
         <header class="chat-navbar">
             <div class="header-left">
                 <!-- Back to Lobby -->
-                <a href="index.jsp" class="btn-back-lobby" title="Trở về Sảnh Chờ">
+                <a href="index.jsp" class="btn-back-lobby" onclick="return leaveToLobby(event)" title="Rời phòng và trở về Sảnh Chờ">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
@@ -774,14 +781,30 @@
     }
     <% } %>
 
+    async function performLeaveRoom() {
+        if (typeof stopPollingForLeave === 'function') {
+            stopPollingForLeave();
+        }
+        try {
+            await fetch('api/room', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'action=leave'
+            });
+        } catch (e) {
+        }
+        window.location.href = 'index.jsp';
+    }
+
+    function leaveToLobby(e) {
+        if (e) e.preventDefault();
+        performLeaveRoom();
+        return false;
+    }
+
     async function leaveRoom() {
         if (!confirm('Bạn có muốn rời khỏi phòng chat này và quay về Sảnh chờ?')) return;
-        await fetch('api/room', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'action=leave'
-        });
-        window.location.href = 'index.jsp';
+        await performLeaveRoom();
     }
 </script>
 

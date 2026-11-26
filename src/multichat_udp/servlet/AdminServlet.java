@@ -116,7 +116,12 @@ public class AdminServlet extends HttpServlet {
 
         } else if ("kick".equalsIgnoreCase(action)) {
             String targetUserId = req.getParameter("userId");
-            UserProfile kickedUser = room.removeUser(targetUserId);
+            UserProfile targetUser = room.getUser(targetUserId);
+            if (targetUser != null && "ADMIN".equalsIgnoreCase(targetUser.getRole())) {
+                out.print("{\"success\":false,\"message\":\"Không thể mời Quản trị viên ra khỏi phòng.\"}");
+                return;
+            }
+            UserProfile kickedUser = room.kickUser(targetUserId);
             if (kickedUser != null) {
                 try {
                     String extra = "{\"role\":\"ADMIN\",\"action\":\"KICK\",\"target\":\"" + escapeJson(kickedUser.getUsername()) + "\"}";
@@ -208,6 +213,20 @@ public class AdminServlet extends HttpServlet {
             } catch (Exception ignored) {
             }
             out.print("{\"success\":true,\"status\":\"" + newStatus + "\"}");
+
+        } else if ("delete_room".equalsIgnoreCase(action)) {
+            boolean deleted = RoomManager.getInstance().deleteRoomByAdmin(room.getRoomCode());
+            if (deleted) {
+                if (session != null) {
+                    String currentSessionRoom = (String) session.getAttribute("roomCode");
+                    if (room.getRoomCode().equalsIgnoreCase(currentSessionRoom)) {
+                        session.removeAttribute("roomCode");
+                    }
+                }
+                out.print("{\"success\":true,\"message\":\"Đã giải tán và xóa phòng #" + escapeJson(room.getRoomCode()) + ".\"}");
+            } else {
+                out.print("{\"success\":false,\"message\":\"Không thể xóa phòng chat này.\"}");
+            }
 
         } else {
             out.print("{\"success\":false,\"message\":\"Hành động Quản trị viên không xác định.\"}");

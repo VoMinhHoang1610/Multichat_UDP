@@ -4,6 +4,8 @@
 <%@ page import="multichat_udp.UserProfile" %>
 <%@ page import="multichat_udp.Account" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Collection" %>
+<%@ page import="java.util.ArrayList" %>
 <%
     Account account = (Account) session.getAttribute("account");
     if (account == null) {
@@ -53,15 +55,22 @@
         return;
     }
 
+    String allFlag = request.getParameter("all");
     String roomCode = request.getParameter("room");
-    if (roomCode == null || roomCode.trim().isEmpty()) {
-        roomCode = (String) session.getAttribute("roomCode");
-    }
+    boolean hasSearchedRoom = (roomCode != null && !roomCode.trim().isEmpty());
 
     ChatRoom room = null;
-    if (roomCode != null) {
-        room = RoomManager.getInstance().getRoom(roomCode);
+    if (!"1".equals(allFlag) && hasSearchedRoom) {
+        room = RoomManager.getInstance().getRoom(roomCode.trim());
     }
+
+    Collection<ChatRoom> allRooms = RoomManager.getInstance().getAllRooms();
+    List<ChatRoom> roomsList = new ArrayList<>(allRooms);
+    roomsList.sort((a, b) -> {
+        int cmpUsers = Integer.compare(b.getUserCount(), a.getUserCount());
+        if (cmpUsers != 0) return cmpUsers;
+        return a.getRoomCode().compareToIgnoreCase(b.getRoomCode());
+    });
 %>
 <!DOCTYPE html>
 <html lang="vi" data-theme="light">
@@ -97,6 +106,15 @@
                 Sảnh Chờ
             </a>
             <% if (room != null) { %>
+            <a href="admin.jsp?all=1" class="btn btn-secondary" title="Xem danh sách tất cả các phòng">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                Tất cả phòng
+            </a>
             <a href="chat.jsp?room=<%= room.getRoomCode() %>" class="btn btn-secondary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -120,22 +138,161 @@
         </div>
     </div>
 
-    <% if (room == null) { %>
-    <div class="table-card" style="padding: 44px; text-align: center;">
-        <h3 style="margin-bottom: 14px; font-size: 16px;">Vui lòng chọn hoặc nhập mã phòng cần quản trị</h3>
-        <form method="get" action="admin.jsp" class="admin-search-form" style="display: inline-flex; gap: 10px; max-width: 420px; width: 100%;">
+    <% if (room == null) {
+        int totalRooms = roomsList.size();
+        int totalOnlineUsers = 0;
+        int activeRoomsCount = 0;
+        for (ChatRoom r : roomsList) {
+            totalOnlineUsers += r.getUserCount();
+            if ("ACTIVE".equalsIgnoreCase(r.getStatus())) activeRoomsCount++;
+        }
+    %>
+
+    <!-- SYSTEM OVERVIEW STATS -->
+    <div class="stats-grid admin-overview-stats">
+        <div class="stat-card">
+            <div class="stat-card-top">
+                <span class="stat-label">TỔNG PHÒNG CHAT</span>
+                <div class="stat-icon-badge" style="background: var(--primary-light); color: var(--primary);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-val" style="color: var(--primary-text);"><%= totalRooms %></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-top">
+                <span class="stat-label">ĐANG MỞ / TẠM KHÓA</span>
+                <div class="stat-icon-badge" style="background: var(--warning-light); color: var(--warning);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-val"><%= activeRoomsCount %> / <%= totalRooms - activeRoomsCount %></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-top">
+                <span class="stat-label">NGƯỜI DÙNG TRỰC TUYẾN</span>
+                <div class="stat-icon-badge" style="background: var(--accent-light); color: var(--accent);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-val" style="color: var(--accent-text);"><%= totalOnlineUsers %></div>
+        </div>
+    </div>
+
+    <!-- SEARCH & FILTER TOOLBAR -->
+    <div class="admin-actions-bar">
+        <div>
+            <div style="font-size: 15.5px; font-weight: 700;">Danh Sách Phòng Chat Đang Tồn Tại</div>
+            <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">Nhấp vào bất kỳ phòng nào để mở bảng quản trị chi tiết, hoặc sử dụng các nút thao tác nhanh bên dưới.</div>
+        </div>
+        <form method="get" action="admin.jsp" class="admin-search-form">
             <div class="input-group">
                 <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="4" y1="9" x2="20" y2="9"></line>
-                    <line x1="4" y1="15" x2="20" y2="15"></line>
-                    <line x1="10" y1="3" x2="8" y2="21"></line>
-                    <line x1="16" y1="3" x2="14" y2="21"></line>
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input type="text" name="room" placeholder="Nhập mã phòng (vd: LTM2026)" required style="text-transform: uppercase; font-family: monospace; font-weight: bold;">
+                <input type="text" id="adminRoomSearchInput" name="room" value="<%= hasSearchedRoom ? roomCode.trim().toUpperCase() : "" %>" placeholder="Tìm tên phòng hoặc nhập mã phòng..." oninput="filterAdminRooms(this.value)" style="font-weight: 600;">
             </div>
-            <button type="submit" class="btn btn-primary" style="height: 44px;">Tìm kiếm</button>
+            <button type="submit" class="btn btn-primary" style="height: 44px; white-space: nowrap;">Mở theo mã</button>
         </form>
     </div>
+
+    <% if (hasSearchedRoom && !"1".equals(allFlag)) { %>
+    <div class="admin-not-found-banner">
+        Không tìm thấy phòng có mã <strong>#<%= roomCode.trim().toUpperCase() %></strong>. Vui lòng chọn một phòng đang tồn tại dưới đây.
+    </div>
+    <% } %>
+
+    <!-- EXISTING ROOMS LIST -->
+    <% if (roomsList.isEmpty()) { %>
+    <div class="table-card" style="padding: 48px 24px; text-align: center; color: var(--text-muted);">
+        Hiện chưa có phòng chat nào trong hệ thống. Hãy tạo phòng mới tại Sảnh Chờ.
+    </div>
+    <% } else { %>
+    <div class="admin-rooms-grid" id="adminRoomsGrid">
+        <% for (ChatRoom r : roomsList) {
+            boolean isLocked = "LOCKED".equalsIgnoreCase(r.getStatus());
+            int msgCount = r.getRecentMessages(1000).size();
+            String safeCode = r.getRoomCode();
+        %>
+        <div class="admin-room-card"
+             data-room-search="<%= (r.getRoomCode() + " " + r.getRoomName() + " " + r.getAdminName()).toLowerCase() %>"
+             onclick="openRoomAdmin('<%= safeCode %>')">
+            <div class="admin-room-card-head">
+                <div class="admin-room-title-group">
+                    <div class="admin-room-code-row">
+                        <span class="room-code-chip">#<%= safeCode %></span>
+                        <span class="badge <%= isLocked ? "badge-admin-crown" : "badge-online" %>">
+                            <%= isLocked ? "LOCKED" : "ACTIVE" %>
+                        </span>
+                    </div>
+                    <h3 class="admin-room-name"><%= r.getRoomName() %></h3>
+                </div>
+                <span class="admin-room-enter-hint" title="Đi tới bảng quản trị phòng #<%= safeCode %>">
+                    Quản trị
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </span>
+            </div>
+
+            <p class="admin-room-desc"><%= (r.getDescription() != null && !r.getDescription().trim().isEmpty()) ? r.getDescription() : "Phòng chat UDP Multicast" %></p>
+
+            <div class="admin-room-meta">
+                <span class="admin-meta-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                    </svg>
+                    <strong><%= r.getUserCount() %>/<%= r.getMaxUsers() %></strong> online
+                </span>
+                <span class="admin-meta-item mono">
+                    <%= r.getMulticastIp() %>:<%= r.getMulticastPort() %>
+                </span>
+                <span class="admin-meta-item">
+                    <strong><%= msgCount %></strong> tin nhắn
+                </span>
+            </div>
+
+            <div class="admin-room-actions" onclick="event.stopPropagation();">
+                <a href="admin.jsp?room=<%= safeCode %>" class="btn btn-primary btn-sm">
+                    Quản trị phòng
+                </a>
+                <a href="chat.jsp?room=<%= safeCode %>" class="btn btn-secondary btn-sm">
+                    Vào Chat
+                </a>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="toggleRoomLock('<%= safeCode %>')" title="<%= isLocked ? "Mở khóa phòng" : "Tạm khóa phòng" %>">
+                    <%= isLocked ? "Mở khóa" : "Khóa phòng" %>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="clearRoomChat('<%= safeCode %>')" title="Làm sạch lịch sử chat">
+                    Xóa chat
+                </button>
+                <button type="button" class="btn btn-danger-subtle btn-sm" onclick="deleteRoom('<%= safeCode %>')" title="Giải tán và xóa phòng này">
+                    Xóa phòng
+                </button>
+            </div>
+        </div>
+        <% } %>
+    </div>
+    <div id="adminRoomsEmptyFilter" class="table-card" style="display: none; padding: 36px; text-align: center; color: var(--text-muted); margin-top: 12px;">
+        Không có phòng nào khớp với từ khóa tìm kiếm.
+    </div>
+    <% } %>
     <% } else { %>
 
     <!-- 4 MODERN KPI STATS CARDS -->
@@ -242,6 +399,9 @@
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                 </svg>
                 Xóa Lịch Sử Chat
+            </button>
+            <button type="button" class="btn btn-danger-subtle" onclick="deleteRoom('<%= room.getRoomCode() %>', true)" title="Giải tán và xóa phòng chat này">
+                Xóa Phòng
             </button>
         </div>
     </div>
@@ -375,10 +535,33 @@
         }
     }
 
-    async function toggleRoomLock() {
+    function openRoomAdmin(code) {
+        if (!code) return;
+        window.location.href = 'admin.jsp?room=' + encodeURIComponent(code);
+    }
+
+    function filterAdminRooms(keyword) {
+        const q = (keyword || '').trim().toLowerCase();
+        const cards = document.querySelectorAll('#adminRoomsGrid .admin-room-card');
+        let visibleCount = 0;
+        cards.forEach(card => {
+            const hay = card.dataset.roomSearch || '';
+            const show = !q || hay.includes(q);
+            card.style.display = show ? 'flex' : 'none';
+            if (show) visibleCount++;
+        });
+        const emptyEl = document.getElementById('adminRoomsEmptyFilter');
+        if (emptyEl) {
+            emptyEl.style.display = (cards.length > 0 && visibleCount === 0) ? 'block' : 'none';
+        }
+    }
+
+    async function toggleRoomLock(targetRoomCode) {
+        const code = targetRoomCode || '<%= (room != null) ? room.getRoomCode() : "" %>';
+        if (!code) return;
         const body = new URLSearchParams({
             action: 'toggle_lock',
-            roomCode: '<%= (room != null) ? room.getRoomCode() : "" %>'
+            roomCode: code
         });
 
         try {
@@ -388,18 +571,24 @@
                 body: body.toString()
             });
             const res = await resp.json();
-            alert('Trạng thái phòng đã chuyển thành: ' + res.status);
-            window.location.reload();
+            if (res.success) {
+                alert('Trạng thái phòng #' + code + ' đã chuyển thành: ' + res.status);
+                window.location.reload();
+            } else {
+                alert(res.message || 'Không thể chuyển trạng thái phòng.');
+            }
         } catch (e) {
             alert('Lỗi chuyển trạng thái phòng.');
         }
     }
 
-    async function clearRoomChat() {
-        if (!confirm('Bạn có chắc muốn làm sạch toàn bộ lịch sử trò chuyện trong phòng?')) return;
+    async function clearRoomChat(targetRoomCode) {
+        const code = targetRoomCode || '<%= (room != null) ? room.getRoomCode() : "" %>';
+        if (!code) return;
+        if (!confirm('Bạn có chắc muốn làm sạch toàn bộ lịch sử trò chuyện trong phòng #' + code + '?')) return;
         const body = new URLSearchParams({
             action: 'clear_chat',
-            roomCode: '<%= (room != null) ? room.getRoomCode() : "" %>'
+            roomCode: code
         });
 
         try {
@@ -410,8 +599,41 @@
             });
             const res = await resp.json();
             alert(res.message);
+            if (res.success) {
+                window.location.reload();
+            }
         } catch (e) {
             alert('Lỗi làm sạch lịch sử chat.');
+        }
+    }
+
+    async function deleteRoom(targetRoomCode, redirectAll) {
+        const code = targetRoomCode || '<%= (room != null) ? room.getRoomCode() : "" %>';
+        if (!code) return;
+        if (!confirm('Bạn có chắc chắn muốn giải tán và xóa vĩnh viễn phòng #' + code + '?')) return;
+
+        const body = new URLSearchParams({
+            action: 'delete_room',
+            roomCode: code
+        });
+
+        try {
+            const resp = await fetch('api/admin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            });
+            const res = await resp.json();
+            alert(res.message);
+            if (res.success) {
+                if (redirectAll) {
+                    window.location.href = 'admin.jsp?all=1';
+                } else {
+                    window.location.reload();
+                }
+            }
+        } catch (e) {
+            alert('Lỗi thực thi lệnh xóa phòng.');
         }
     }
 

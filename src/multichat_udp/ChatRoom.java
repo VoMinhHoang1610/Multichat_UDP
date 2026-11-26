@@ -26,6 +26,7 @@ public class ChatRoom implements Serializable {
     private String status; // "ACTIVE" hoac "LOCKED"
 
     private final ConcurrentHashMap<String, UserProfile> activeUsers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Long> kickedUsers = new ConcurrentHashMap<>();
     private final CopyOnWriteArrayList<ChatMessage> messageHistory = new CopyOnWriteArrayList<>();
     // Luu cam xuc theo khoa "timestamp_senderId" -> (userId -> emoji)
     private final ConcurrentHashMap<String, ConcurrentHashMap<String, String>> messageReactions = new ConcurrentHashMap<>();
@@ -93,9 +94,13 @@ public class ChatRoom implements Serializable {
                         || msg.getType() == MessageType.GIF) {
                     user.incrementMessageCount();
                 }
-            } else {
-                // Tu dong them user neu chua co trong danh sach phong
-                UserProfile newUser = new UserProfile(senderId, msg.getSenderName(), msg.getAvatarUrl(), "MEMBER", "127.0.0.1");
+            } else if (msg.getType() != MessageType.LEAVE
+                    && msg.getType() != MessageType.RECALL
+                    && msg.getType() != MessageType.REACTION) {
+                // Tu dong them user neu chua co trong danh sach phong (tru goi LEAVE/RECALL/REACTION)
+                String roleFromExtra = ChatMessage.extractJsonStringField(msg.getExtraData(), "role");
+                String userRole = (roleFromExtra != null && !roleFromExtra.isEmpty()) ? roleFromExtra : "MEMBER";
+                UserProfile newUser = new UserProfile(senderId, msg.getSenderName(), msg.getAvatarUrl(), userRole, "127.0.0.1");
                 activeUsers.put(senderId, newUser);
             }
         }
@@ -236,15 +241,45 @@ public class ChatRoom implements Serializable {
     }
 
     public boolean addUser(UserProfile user) {
-        if (activeUsers.size() >= maxUsers) {
+        if (user == null || user.getUserId() == null) {
             return false;
         }
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(user.getRole());
+        UserProfile existing = activeUsers.get(user.getUserId());
+        if (existing != null) {
+            existing.touch();
+            existing.setUsername(user.getUsername());
+            existing.setAvatarUrl(user.getAvatarUrl());
+            if (user.getBio() != null) existing.setBio(user.getBio());
+            return true;
+        }
+        if (!isAdmin && activeUsers.size() >= maxUsers) {
+            return false;
+        }
+        user.touch();
         activeUsers.put(user.getUserId(), user);
         return true;
     }
 
     public UserProfile removeUser(String userId) {
         return activeUsers.remove(userId);
+    }
+
+    public UserProfile kickUser(String userId) {
+        if (userId == null) return null;
+        UserProfile removed = activeUsers.remove(userId);
+        kickedUsers.put(userId, System.currentTimeMillis());
+        return removed;
+    }
+
+    public boolean isUserKicked(String userId) {
+        return userId != null && kickedUsers.containsKey(userId);
+    }
+
+    public void clearKickedUser(String userId) {
+        if (userId != null) {
+            kickedUsers.remove(userId);
+        }
     }
 
     public UserProfile getUser(String userId) {

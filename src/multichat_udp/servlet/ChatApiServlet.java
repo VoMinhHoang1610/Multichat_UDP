@@ -46,15 +46,28 @@ public class ChatApiServlet extends HttpServlet {
 
         if (currentUser != null) {
             currentUser.touch();
+            boolean isAdminSession = Boolean.TRUE.equals(session.getAttribute("isAdmin"))
+                    || "ADMIN".equalsIgnoreCase(currentUser.getRole());
+            String sessionRoomCode = (String) session.getAttribute("roomCode");
+            boolean stillInThisRoom = sessionRoomCode != null && sessionRoomCode.equalsIgnoreCase(room.getRoomCode());
+
             UserProfile roomUser = room.getUser(currentUser.getUserId());
             if (roomUser != null) {
                 roomUser.touch();
                 isMuted = roomUser.isMuted();
                 // Dong bo lai ten hien thi moi nhat tu roomUser neu co
                 currentUser.setUsername(roomUser.getUsername());
-            } else {
-                // Thanh vien khong con trong danh sach phong (co the da bi Admin kick)
+            } else if (!isAdminSession && room.isUserKicked(currentUser.getUserId())) {
+                // Chi bao bi kick khi thuc su bi Admin moi ra khoi phong
                 isKicked = true;
+            } else if (stillInThisRoom) {
+                // Chi khoi phuc phien neu session van dang o phong nay (tranh race condition sau khi user bam Roi phong)
+                room.addUser(currentUser);
+                UserProfile restored = room.getUser(currentUser.getUserId());
+                if (restored != null) {
+                    restored.touch();
+                    isMuted = restored.isMuted();
+                }
             }
         }
 
@@ -180,10 +193,14 @@ public class ChatApiServlet extends HttpServlet {
         // 2. Kiem tra nguoi dung con trong phong hay bi tat tieng (mute)
         UserProfile roomUser = room.getUser(user.getUserId());
         if (roomUser == null) {
-            out.print("{\"success\":false,\"message\":\"Bạn không còn trong phòng chat này.\"}");
-            return;
+            if (!isAdmin && room.isUserKicked(user.getUserId())) {
+                out.print("{\"success\":false,\"message\":\"Bạn đã bị Quản trị viên mời ra khỏi phòng chat này.\"}");
+                return;
+            }
+            room.addUser(user);
+            roomUser = room.getUser(user.getUserId());
         }
-        if (roomUser.isMuted()) {
+        if (roomUser != null && roomUser.isMuted()) {
             out.print("{\"success\":false,\"message\":\"Bạn đã bị Admin tắt tiếng trong phòng này!\"}");
             return;
         }
