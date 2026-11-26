@@ -126,8 +126,8 @@
             <form onsubmit="handleJoinSubmit(event)">
                 <div class="form-row">
                     <label class="form-label" for="joinRoomCode">CHỌN HOẶC NHẬP MÃ PHÒNG CHAT (ROOM CODE) *</label>
-                    <div class="join-inline-row" style="display: flex; gap: 10px;">
-                        <div class="input-group" style="flex: 1;">
+                    <div class="join-inline-row">
+                        <div class="input-group join-input-wrap">
                             <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="4" y1="9" x2="20" y2="9"></line>
                                 <line x1="4" y1="15" x2="20" y2="15"></line>
@@ -156,6 +156,12 @@
                                 <div class="room-card-header">
                                     <span class="room-code-tag">#<%= r.getRoomCode() %></span>
                                     <span class="status-dot-wrapper">
+                                        <% if (r.hasPasscode()) { %>
+                                        <span class="badge-passcode" title="Phòng có mã bảo mật">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                            Bảo mật
+                                        </span>
+                                        <% } %>
                                         <span class="pulse-dot"></span>
                                         <span class="badge <%= "ACTIVE".equals(r.getStatus()) ? "badge-online" : "badge-admin-crown" %>"><%= r.getStatus() %></span>
                                     </span>
@@ -231,9 +237,22 @@
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <label class="form-label" for="createMaxUsers">GIỚI HẠN THÀNH VIÊN TỐI ĐA</label>
-                    <input type="number" id="createMaxUsers" name="maxUsers" value="50" min="2" max="500">
+                <div class="grid-2">
+                    <div class="form-row">
+                        <label class="form-label" for="createMaxUsers">GIỚI HẠN THÀNH VIÊN TỐI ĐA</label>
+                        <input type="number" id="createMaxUsers" name="maxUsers" value="50" min="2" max="500">
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label" for="createPasscode">MÃ BẢO MẬT PHÒNG (KHÔNG BẮT BUỘC)</label>
+                        <div class="input-group">
+                            <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            <input type="password" id="createPasscode" name="accessPasscode" placeholder="Để trống nếu phòng công khai..." autocomplete="new-password">
+                        </div>
+                        <div class="form-hint">Nếu nhập mã, người tham gia cần nhập đúng mã mới vào được phòng.</div>
+                    </div>
                 </div>
 
                 <button type="submit" id="btnCreateSubmit" class="btn btn-amber" style="width: 100%; height: 46px; font-size: 14px; margin-top: 10px;">
@@ -257,6 +276,12 @@
                         <div class="room-card-header">
                             <span class="room-code-tag">#<%= r.getRoomCode() %></span>
                             <span class="status-dot-wrapper">
+                                <% if (r.hasPasscode()) { %>
+                                <span class="badge-passcode" title="Phòng có mã bảo mật">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                    Bảo mật
+                                </span>
+                                <% } %>
                                 <span class="pulse-dot"></span>
                                 <span class="badge <%= "ACTIVE".equals(r.getStatus()) ? "badge-online" : "badge-admin-crown" %>"><%= r.getStatus() %></span>
                             </span>
@@ -317,17 +342,21 @@
         await executeJoin(code);
     }
 
-    async function executeJoin(roomCode) {
+    async function executeJoin(roomCode, passcode) {
         if (!roomCode) {
             AppNotify.warning('Bạn quên nhập mã phòng rồi — thử #LTM2026 xem sao!', { tag: 'Thiếu mã phòng' });
             return;
         }
 
         try {
-            const body = new URLSearchParams({
+            const params = {
                 action: 'join',
                 roomCode: roomCode
-            });
+            };
+            if (passcode) {
+                params.passcode = passcode;
+            }
+            const body = new URLSearchParams(params);
 
             const resp = await fetch('api/room', {
                 method: 'POST',
@@ -339,6 +368,23 @@
             if (data.success) {
                 AppNotify.defer('Đã bắt được sóng phòng #' + data.roomCode + '!', { type: 'success', tag: 'Kết nối thành công', code: '#' + data.roomCode });
                 window.location.href = 'chat.jsp?room=' + encodeURIComponent(data.roomCode);
+            } else if (data.needPasscode) {
+                if (data.wrongPasscode) {
+                    AppNotify.error(data.message || 'Mã bảo mật không chính xác!', { tag: 'Sai mã bảo mật', code: '#' + data.roomCode });
+                }
+                const entered = await AppNotify.prompt({
+                    badge: 'Phòng bảo mật #' + (data.roomCode || roomCode.toUpperCase()),
+                    icon: 'lock',
+                    tone: data.wrongPasscode ? 'danger' : 'primary',
+                    title: 'Nhập mã bảo mật phòng',
+                    message: 'Phòng "' + (data.roomName || roomCode.toUpperCase()) + '" được đặt mã bảo mật. Vui lòng nhập đúng mã để tham gia.',
+                    placeholder: 'Nhập mã bảo mật...',
+                    confirmText: 'Mở khóa & Vào phòng',
+                    cancelText: 'Đóng'
+                });
+                if (entered) {
+                    await executeJoin(roomCode, entered);
+                }
             } else {
                 AppNotify.error(data.message || 'Không thể vào phòng chat!', { tag: 'Không thể tham gia' });
             }
@@ -355,6 +401,8 @@
         const ip = document.getElementById('createIp').value.trim();
         const port = document.getElementById('createPort').value.trim();
         const maxUsers = document.getElementById('createMaxUsers').value.trim();
+        const passcodeEl = document.getElementById('createPasscode');
+        const accessPasscode = passcodeEl ? passcodeEl.value.trim() : '';
 
         try {
             const body = new URLSearchParams({
@@ -364,7 +412,8 @@
                 description: desc,
                 multicastIp: ip,
                 multicastPort: port,
-                maxUsers: maxUsers
+                maxUsers: maxUsers,
+                accessPasscode: accessPasscode
             });
 
             const resp = await fetch('api/room', {
@@ -411,6 +460,14 @@
     if (savedTheme) {
         document.documentElement.setAttribute('data-theme', savedTheme);
     }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const needCode = params.get('needPasscode');
+        if (needCode) {
+            selectAndJoinRoom(needCode);
+        }
+    });
 </script>
 
 </body>

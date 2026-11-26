@@ -239,6 +239,12 @@
                 <div class="admin-room-title-group">
                     <div class="admin-room-code-row">
                         <span class="room-code-chip">#<%= safeCode %></span>
+                        <% if (r.hasPasscode()) { %>
+                        <span class="badge-passcode" title="Phòng có đặt mã bảo mật">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                            Có mã bảo mật
+                        </span>
+                        <% } %>
                         <span class="badge <%= isLocked ? "badge-admin-crown" : "badge-online" %>">
                             <%= isLocked ? "LOCKED" : "ACTIVE" %>
                         </span>

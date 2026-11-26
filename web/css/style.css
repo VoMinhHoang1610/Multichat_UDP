@@ -9,6 +9,7 @@
    1. DESIGN TOKENS
    =================================================================== */
 :root {
+  color-scheme: light;
   --font-sans: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
@@ -84,6 +85,7 @@
    DARK MODE TOKENS
    =================================================================== */
 [data-theme="dark"] {
+  color-scheme: dark;
   --primary: #0EA5E9;
   --primary-hover: #38BDF8;
   --primary-active: #0284C7;
@@ -381,6 +383,7 @@ button, a, .btn {
 .status-dot-wrapper {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
@@ -830,6 +833,11 @@ textarea::placeholder {
   align-items: center;
 }
 
+.join-input-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
 .room-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
@@ -857,6 +865,7 @@ textarea::placeholder {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 10px;
 }
@@ -889,6 +898,7 @@ textarea::placeholder {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 10px 12px;
   background: var(--surface-alt);
@@ -2489,8 +2499,53 @@ tbody tr:hover {
 }
 
 @media (max-width: 640px) {
+  .auth-top-actions {
+    top: 12px;
+    right: 14px;
+  }
+
+  .auth-wrapper {
+    padding: 64px 14px 28px;
+  }
+
   .auth-card {
-    padding: 24px 20px;
+    padding: 24px 18px;
+  }
+
+  .hero-container {
+    padding: 16px 12px 32px;
+  }
+
+  .user-lobby-bar {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .user-lobby-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 10px 12px 0;
+  }
+
+  .nav-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-tab-btn {
+    padding: 9px 12px;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .tab-content {
+    padding: 16px;
   }
 
   .demo-grid {
@@ -2506,8 +2561,39 @@ tbody tr:hover {
     align-items: stretch;
   }
 
+  .join-inline-row .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .desktop-back-label {
     display: none;
+  }
+
+  .chat-navbar {
+    height: 54px;
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .btn-back-lobby {
+    height: 34px;
+    padding: 0 9px;
+  }
+
+  .room-avatar-badge {
+    width: 32px;
+    height: 32px;
+  }
+
+  .room-title-heading {
+    font-size: 14px;
+  }
+
+  .header-action-btn {
+    height: 34px;
+    min-width: 34px;
+    padding: 0 8px;
   }
 
   .chat-messages {
@@ -2515,7 +2601,12 @@ tbody tr:hover {
   }
 
   .chat-composer-area {
-    padding: 10px 12px 14px;
+    padding: 8px 10px max(12px, env(safe-area-inset-bottom));
+  }
+
+  .composer-floating-dock {
+    padding: 6px 8px;
+    gap: 4px;
   }
 
   .msg-bubble {
@@ -2534,11 +2625,23 @@ tbody tr:hover {
   .picker-popup {
     width: 100%;
     max-width: 100%;
-    height: 360px;
+    height: min(360px, 54dvh);
+    left: 0;
+    right: 0;
   }
 
   .picker-emoji-grid {
     grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  select,
+  textarea,
+  #chatInput {
+    font-size: 16px;
   }
 }
 
@@ -2610,7 +2713,8 @@ tbody tr:hover {
 
 .msg-row.self .msg-bubble,
 .msg-row.other .msg-bubble {
-  max-width: min(620px, 76vw);
+  max-width: min(580px, 68vw);
+  min-width: 0;
 }
 
 .msg-reply-quote {
@@ -2884,16 +2988,45 @@ tbody tr:hover {
 }
 
 @media (max-width: 768px) {
+  .msg-row.other .msg-bubble-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .msg-row.self .msg-bubble-wrap {
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .msg-actions {
+    display: none;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+  }
+
+  .msg-row.actions-open .msg-actions {
+    display: inline-flex;
+  }
+
   .msg-row.self .msg-bubble,
   .msg-row.other .msg-bubble {
-    max-width: 78vw;
+    max-width: 84vw;
   }
 
   .msg-reply-preview {
     max-width: 180px;
   }
 
-  .msg-react-popup {
+  .msg-row.other .msg-react-popup {
+    left: 0;
+    right: auto;
+    transform: none;
+  }
+
+  .msg-row.self .msg-react-popup {
     left: auto;
     right: 0;
     transform: none;
@@ -2970,6 +3103,7 @@ tbody tr:hover {
 .admin-room-code-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 6px;
 }
@@ -3460,4 +3594,76 @@ tbody tr:hover {
     width: 100%;
     justify-content: center;
   }
+}
+
+
+/* Prompt Input & Passcode Badge Styles */
+.notify-prompt-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.notify-prompt-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 40px 0 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.notify-prompt-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--ring-focus);
+  background: var(--surface);
+}
+
+.notify-prompt-input.is-invalid {
+  border-color: var(--danger);
+  animation: notifyShake 0.35s ease;
+}
+
+.notify-prompt-eye {
+  position: absolute;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.notify-prompt-eye:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+@keyframes notifyShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.badge-passcode {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--primary-light);
+  color: var(--primary-text);
+  font-size: 11px;
+  font-weight: 700;
 }

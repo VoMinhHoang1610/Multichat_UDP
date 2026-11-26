@@ -14,6 +14,8 @@
     danger: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>',
     leave: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>',
     shield: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+    lock: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>',
+    eye: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>',
     close: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>'
   };
 
@@ -178,6 +180,98 @@
     });
   }
 
+  function openPrompt(config) {
+    return new Promise((resolve) => {
+      const existing = document.getElementById('appConfirmOverlay');
+      if (existing) existing.remove();
+
+      const tone = config.tone || 'primary';
+      const iconKey = config.icon || 'lock';
+      const badgeLabel = config.badge || 'Bảo mật kênh';
+      const title = config.title || 'Nhập mã bảo mật';
+      const message = config.message || '';
+      const placeholder = config.placeholder || 'Nhập mã...';
+      const confirmText = config.confirmText || 'Xác nhận';
+      const cancelText = config.cancelText || 'Hủy';
+      const inputType = config.inputType || 'password';
+
+      const overlay = document.createElement('div');
+      overlay.id = 'appConfirmOverlay';
+      overlay.className = 'notify-dialog-overlay';
+      overlay.innerHTML = `
+        <div class="notify-dialog-card tone-${escapeText(tone)}" role="dialog" aria-modal="true">
+          <div class="notify-dialog-top">
+            <div class="notify-dialog-icon">${ICONS[iconKey] || ICONS.lock}</div>
+            <span class="notify-dialog-badge">${escapeText(badgeLabel)}</span>
+          </div>
+          <h3 class="notify-dialog-title">${escapeText(title)}</h3>
+          <p class="notify-dialog-message" style="margin-bottom: 14px;">${escapeText(message)}</p>
+          <div class="notify-prompt-input-wrap">
+            <input type="${escapeText(inputType)}" class="notify-prompt-input" placeholder="${escapeText(placeholder)}" autocomplete="off" />
+            ${inputType === 'password' ? `<button type="button" class="notify-prompt-eye" title="Hiện / Ẩn mã">${ICONS.eye}</button>` : ''}
+          </div>
+          <div class="notify-dialog-actions" style="margin-top: 18px;">
+            <button type="button" class="btn btn-secondary notify-btn-cancel">${escapeText(cancelText)}</button>
+            <button type="button" class="btn btn-primary notify-btn-confirm">${escapeText(confirmText)}</button>
+          </div>
+        </div>
+      `;
+
+      const inputEl = overlay.querySelector('.notify-prompt-input');
+      const eyeBtn = overlay.querySelector('.notify-prompt-eye');
+      if (eyeBtn) {
+        eyeBtn.addEventListener('click', () => {
+          inputEl.type = (inputEl.type === 'password') ? 'text' : 'password';
+          inputEl.focus();
+        });
+      }
+
+      let settled = false;
+      const closeWith = (val) => {
+        if (settled) return;
+        settled = true;
+        document.removeEventListener('keydown', onKey);
+        overlay.classList.remove('is-visible');
+        setTimeout(() => {
+          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+          resolve(val);
+        }, 180);
+      };
+
+      const submitVal = () => {
+        const val = inputEl.value.trim();
+        if (!val) {
+          inputEl.classList.add('is-invalid');
+          inputEl.focus();
+          setTimeout(() => inputEl.classList.remove('is-invalid'), 450);
+          return;
+        }
+        closeWith(val);
+      };
+
+      const onKey = (e) => {
+        if (e.key === 'Escape') closeWith(null);
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submitVal();
+        }
+      };
+      document.addEventListener('keydown', onKey);
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeWith(null);
+      });
+      overlay.querySelector('.notify-btn-cancel').addEventListener('click', () => closeWith(null));
+      overlay.querySelector('.notify-btn-confirm').addEventListener('click', submitVal);
+
+      document.body.appendChild(overlay);
+      requestAnimationFrame(() => {
+        overlay.classList.add('is-visible');
+        inputEl.focus();
+      });
+    });
+  }
+
   const PENDING_KEY = 'udp_pending_notify_queue';
 
   function defer(message, options) {
@@ -219,6 +313,7 @@
     warning: (msg, opts) => toast(msg, Object.assign({ type: 'warning' }, opts)),
     info: (msg, opts) => toast(msg, Object.assign({ type: 'info' }, opts)),
     confirm: (opts) => openDialog(Object.assign({ singleButton: false }, opts)),
-    modalAlert: (opts) => openDialog(Object.assign({ singleButton: true, confirmText: 'Đã hiểu' }, opts))
+    modalAlert: (opts) => openDialog(Object.assign({ singleButton: true, confirmText: 'Đã hiểu' }, opts)),
+    prompt: (opts) => openPrompt(opts || {})
   };
 })(window);

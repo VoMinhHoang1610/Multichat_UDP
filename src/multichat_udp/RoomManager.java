@@ -75,6 +75,12 @@ public class RoomManager {
     public synchronized ChatRoom createRoom(String roomCode, String roomName, String description,
                                             String adminName, String adminPin, String multicastIp,
                                             int multicastPort, int maxUsers) throws IOException {
+        return createRoom(roomCode, roomName, description, adminName, adminPin, multicastIp, multicastPort, maxUsers, "");
+    }
+
+    public synchronized ChatRoom createRoom(String roomCode, String roomName, String description,
+                                            String adminName, String adminPin, String multicastIp,
+                                            int multicastPort, int maxUsers, String accessPasscode) throws IOException {
         if (roomCode == null || roomCode.trim().isEmpty()) {
             throw new IllegalArgumentException("Mã phòng không được để trống!");
         }
@@ -85,7 +91,7 @@ public class RoomManager {
         }
 
         ChatRoom room = new ChatRoom(normalizedCode, roomName, description, adminName,
-                adminPin, multicastIp, multicastPort, maxUsers);
+                adminPin, multicastIp, multicastPort, maxUsers, accessPasscode);
         room.initUDP();
         rooms.put(normalizedCode, room);
 

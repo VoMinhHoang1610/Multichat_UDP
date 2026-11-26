@@ -47,6 +47,11 @@
         return;
     }
 
+    if (!isAdmin && room.hasPasscode() && !Boolean.TRUE.equals(session.getAttribute("verifiedRoom_" + room.getRoomCode()))) {
+        response.sendRedirect("index.jsp?needPasscode=" + java.net.URLEncoder.encode(room.getRoomCode(), "UTF-8"));
+        return;
+    }
+
     session.setAttribute("roomCode", room.getRoomCode());
     room.addUser(user);
 %>

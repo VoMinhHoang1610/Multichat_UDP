@@ -19,6 +19,7 @@ public class ChatRoom implements Serializable {
     private String description;
     private String adminName;
     private String adminPin;
+    private String accessPasscode; // Ma bao mat vao phong (khong bat buoc, rong = cong khai)
     private String multicastIp;
     private int multicastPort;
     private int maxUsers;
@@ -34,11 +35,17 @@ public class ChatRoom implements Serializable {
 
     public ChatRoom(String roomCode, String roomName, String description, String adminName,
                     String adminPin, String multicastIp, int multicastPort, int maxUsers) {
+        this(roomCode, roomName, description, adminName, adminPin, multicastIp, multicastPort, maxUsers, "");
+    }
+
+    public ChatRoom(String roomCode, String roomName, String description, String adminName,
+                    String adminPin, String multicastIp, int multicastPort, int maxUsers, String accessPasscode) {
         this.roomCode = roomCode != null ? roomCode.trim().toUpperCase() : "DEFAULT";
         this.roomName = (roomName != null && !roomName.trim().isEmpty()) ? roomName.trim() : "Phòng Chat " + this.roomCode;
         this.description = description != null ? description : "Phòng chat nhóm UDP Multicast";
         this.adminName = (adminName != null && !adminName.trim().isEmpty()) ? adminName.trim() : "Admin";
         this.adminPin = (adminPin != null && !adminPin.trim().isEmpty()) ? adminPin.trim() : "123456";
+        this.accessPasscode = (accessPasscode != null) ? accessPasscode.trim() : "";
         this.multicastIp = (multicastIp != null && !multicastIp.trim().isEmpty()) ? multicastIp.trim() : "224.2.2.3";
         this.multicastPort = multicastPort > 0 ? multicastPort : 8888;
         this.maxUsers = maxUsers > 0 ? maxUsers : 50;
@@ -498,6 +505,23 @@ public class ChatRoom implements Serializable {
         return status;
     }
 
+    public String getAccessPasscode() {
+        return accessPasscode;
+    }
+
+    public void setAccessPasscode(String accessPasscode) {
+        this.accessPasscode = (accessPasscode != null) ? accessPasscode.trim() : "";
+    }
+
+    public boolean hasPasscode() {
+        return accessPasscode != null && !accessPasscode.isEmpty();
+    }
+
+    public boolean verifyPasscode(String inputPasscode) {
+        if (!hasPasscode()) return true;
+        return inputPasscode != null && accessPasscode.equals(inputPasscode.trim());
+    }
+
     public void setStatus(String status) {
         this.status = status;
     }
@@ -514,6 +538,7 @@ public class ChatRoom implements Serializable {
         sb.append("\"maxUsers\":").append(maxUsers).append(",");
         sb.append("\"userCount\":").append(activeUsers.size()).append(",");
         sb.append("\"messageCount\":").append(messageHistory.size()).append(",");
+        sb.append("\"hasPasscode\":").append(hasPasscode()).append(",");
         sb.append("\"status\":\"").append(escapeJson(status)).append("\",");
         sb.append("\"createdAt\":").append(createdAt).append(",");
         sb.append("\"formattedCreatedAt\":\"").append(getFormattedCreatedAt()).append("\"");

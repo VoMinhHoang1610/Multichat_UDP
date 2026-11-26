@@ -98,6 +98,23 @@ public class RoomServlet extends HttpServlet {
                 return;
             }
 
+            // Kiem tra ma bao mat cua phong (neu phong co thiet lap)
+            if (room.hasPasscode()) {
+                String passcode = req.getParameter("passcode");
+                if (passcode == null || passcode.trim().isEmpty()) {
+                    out.print("{\"success\":false,\"needPasscode\":true,\"wrongPasscode\":false,\"roomCode\":\""
+                            + room.getRoomCode() + "\",\"roomName\":\"" + escapeJson(room.getRoomName())
+                            + "\",\"message\":\"Phòng #" + room.getRoomCode() + " được bảo vệ bằng mã bảo mật.\"}");
+                    return;
+                }
+                if (!room.verifyPasscode(passcode)) {
+                    out.print("{\"success\":false,\"needPasscode\":true,\"wrongPasscode\":true,\"roomCode\":\""
+                            + room.getRoomCode() + "\",\"roomName\":\"" + escapeJson(room.getRoomName())
+                            + "\",\"message\":\"Mã bảo mật không chính xác! Vui lòng kiểm tra lại.\"}");
+                    return;
+                }
+            }
+
             // Tao thong tin thanh vien dong bo voi tai khoan
             UserProfile profile = new UserProfile(
                     account.getUsername(),
@@ -113,6 +130,7 @@ public class RoomServlet extends HttpServlet {
 
             session.setAttribute("user", profile);
             session.setAttribute("roomCode", room.getRoomCode());
+            session.setAttribute("verifiedRoom_" + room.getRoomCode(), Boolean.TRUE);
             session.setAttribute("isAdmin", account.isAdmin());
             session.setAttribute("role", account.getRole());
 
@@ -162,6 +180,7 @@ public class RoomServlet extends HttpServlet {
             String multicastIp = req.getParameter("multicastIp");
             String portStr = req.getParameter("multicastPort");
             String maxUsersStr = req.getParameter("maxUsers");
+            String accessPasscode = req.getParameter("accessPasscode");
 
             int port = 8888;
             int maxUsers = 50;
@@ -180,7 +199,8 @@ public class RoomServlet extends HttpServlet {
                         "SECURED_BY_RBAC",
                         multicastIp,
                         port,
-                        maxUsers
+                        maxUsers,
+                        accessPasscode
                 );
 
                 UserProfile adminProfile = new UserProfile(
@@ -196,6 +216,7 @@ public class RoomServlet extends HttpServlet {
 
                 session.setAttribute("user", adminProfile);
                 session.setAttribute("roomCode", room.getRoomCode());
+                session.setAttribute("verifiedRoom_" + room.getRoomCode(), Boolean.TRUE);
                 session.setAttribute("isAdmin", true);
                 session.setAttribute("role", "ADMIN");
 
@@ -239,6 +260,9 @@ public class RoomServlet extends HttpServlet {
                     }
                 }
                 session.removeAttribute("roomCode");
+                if (roomCode != null) {
+                    session.removeAttribute("verifiedRoom_" + roomCode.trim().toUpperCase());
+                }
             }
             out.print("{\"success\":true,\"message\":\"Đã rời khỏi phòng chat.\"}");
 
