@@ -50,7 +50,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title><%= room.getRoomName() %> - UDP Multichat Enterprise</title>
     <!-- Dynamic cache-busting -->
-    <link rel="stylesheet" href="css/style.css?v=6.0.<%= System.currentTimeMillis() %>">
+    <link rel="stylesheet" href="css/style.css?v=10.0.<%= System.currentTimeMillis() %>">
+    <script>
+        const savedTheme = localStorage.getItem('udp_theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+    </script>
     <script src="js/chat.js?v=6.0.<%= System.currentTimeMillis() %>" defer></script>
 </head>
 <body class="in-chat">
@@ -96,7 +102,7 @@
                                 </svg>
                             </span>
                             <% if (isAdmin) { %>
-                            <span class="badge badge-admin-crown desktop-only" style="font-size: 9.5px; padding: 1px 5px;">👑 Admin</span>
+                            <span class="badge badge-admin-crown desktop-only">Admin</span>
                             <% } %>
                         </div>
 
@@ -378,7 +384,7 @@
             <div class="panel-section admin-deck-section">
                 <div class="panel-section-title">
                     <span>QUẢN TRỊ VIÊN PHÒNG</span>
-                    <span class="badge badge-admin-crown" style="font-size: 9px; padding: 1px 5px;">👑 Admin Control</span>
+                    <span class="badge badge-admin-crown">Admin</span>
                 </div>
                 <div class="admin-actions-grid">
                     <a href="admin.jsp?room=<%= room.getRoomCode() %>" class="btn btn-secondary btn-sm admin-btn" title="Xem danh sách thành viên chi tiết &amp; phân quyền">
@@ -440,7 +446,7 @@
                     <div id="myName" class="user-name-text"><%= user.getUsername() %></div>
                     <div class="user-role-badge">
                         <% if (isAdmin) { %>
-                        <span class="badge badge-admin-crown" style="font-size: 9px; padding: 1px 4px;">👑 Quản trị viên</span>
+                        <span class="badge badge-admin-crown">Quản trị viên</span>
                         <% } else { %>
                         <span class="badge badge-member-mini">Thành viên</span>
                         <% } %>

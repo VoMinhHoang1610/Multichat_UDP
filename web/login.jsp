@@ -14,13 +14,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng Nhập &amp; Đăng Ký - UDP Multichat Enterprise</title>
     <!-- Cache-busting CSS query -->
-    <link rel="stylesheet" href="css/style.css?v=3.0.<%= System.currentTimeMillis() %>">
+    <link rel="stylesheet" href="css/style.css?v=9.0.<%= System.currentTimeMillis() %>">
 </head>
 <body>
-
-<!-- Ambient Glowing Orbs Background -->
-<div class="ambient-orb ambient-orb-1"></div>
-<div class="ambient-orb ambient-orb-2"></div>
 
 <!-- Top-Right Theme Toggle -->
 <div class="auth-top-actions">
@@ -45,14 +41,13 @@
         
         <!-- HEADER -->
         <div class="auth-header">
-            <div class="hero-badge">
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <div class="auth-brand-mark">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
-                ENTERPRISE RBAC SYSTEM
             </div>
             <h2>UDP Multichat</h2>
-            <p>Hệ thống xác thực &amp; phân quyền Quản Trị Viên (ADMIN) / Thành Viên (MEMBER)</p>
+            <p>Đăng nhập hoặc tạo tài khoản để tham gia phòng chat UDP Multicast</p>
         </div>
 
         <!-- SEGMENTED TAB BAR -->
@@ -118,24 +113,18 @@
 
             <!-- DEMO ACCOUNTS HELPER PILLS -->
             <div class="demo-section">
-                <div class="demo-title">TÀI KHOẢN MẪU (NHẤP ĐỂ TỰ ĐIỀN NHANH)</div>
+                <div class="demo-title">Tài khoản mẫu (nhấp để điền nhanh)</div>
                 <div class="demo-grid">
                     <div class="demo-pill-card" onclick="quickFill('admin', 'admin123', this)">
-                        <div class="demo-role-badge" style="color: #D97706;">
-                            <span>👑 Quản Trị Viên (Admin)</span>
-                        </div>
+                        <div class="demo-role-badge" style="color: var(--warning-text);">Admin</div>
                         <div class="demo-creds">admin / admin123</div>
                     </div>
                     <div class="demo-pill-card" onclick="quickFill('user1', '123456', this)">
-                        <div class="demo-role-badge" style="color: var(--primary);">
-                            <span>👤 Thành Viên 1 (Member A)</span>
-                        </div>
+                        <div class="demo-role-badge" style="color: var(--primary-text);">Member 1</div>
                         <div class="demo-creds">user1 / 123456</div>
                     </div>
                     <div class="demo-pill-card" onclick="quickFill('user2', '123456', this)">
-                        <div class="demo-role-badge" style="color: var(--primary);">
-                            <span>👤 Thành Viên 2 (Member B)</span>
-                        </div>
+                        <div class="demo-role-badge" style="color: var(--primary-text);">Member 2</div>
                         <div class="demo-creds">user2 / 123456</div>
                     </div>
                 </div>

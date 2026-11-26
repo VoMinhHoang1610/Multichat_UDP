@@ -22,7 +22,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>403 Forbidden - Quyền Truy Cập Bị Từ Chối</title>
     <!-- Cache-busting CSS query -->
-    <link rel="stylesheet" href="css/style.css?v=3.0.<%= System.currentTimeMillis() %>">
+    <link rel="stylesheet" href="css/style.css?v=9.0.<%= System.currentTimeMillis() %>">
 </head>
 <body>
 <div class="forbidden-container">
@@ -70,7 +70,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bảng Quản Trị Admin - UDP Multichat Enterprise</title>
     <!-- Cache-busting CSS query -->
-    <link rel="stylesheet" href="css/style.css?v=3.0.<%= System.currentTimeMillis() %>">
+    <link rel="stylesheet" href="css/style.css?v=9.0.<%= System.currentTimeMillis() %>">
 </head>
 <body>
 
@@ -123,7 +123,7 @@
     <% if (room == null) { %>
     <div class="table-card" style="padding: 44px; text-align: center;">
         <h3 style="margin-bottom: 14px; font-size: 16px;">Vui lòng chọn hoặc nhập mã phòng cần quản trị</h3>
-        <form method="get" action="admin.jsp" style="display: inline-flex; gap: 10px; max-width: 420px; width: 100%;">
+        <form method="get" action="admin.jsp" class="admin-search-form" style="display: inline-flex; gap: 10px; max-width: 420px; width: 100%;">
             <div class="input-group">
                 <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="4" y1="9" x2="20" y2="9"></line>
@@ -143,7 +143,7 @@
         <div class="stat-card">
             <div class="stat-card-top">
                 <span class="stat-label">MÃ PHÒNG CHAT</span>
-                <div class="stat-icon-badge" style="background: var(--primary-gradient);">
+                <div class="stat-icon-badge" style="background: var(--primary-light); color: var(--primary);">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="4" y1="9" x2="20" y2="9"></line>
                         <line x1="4" y1="15" x2="20" y2="15"></line>
@@ -152,13 +152,13 @@
                     </svg>
                 </div>
             </div>
-            <div class="stat-val" style="color: var(--primary); font-family: monospace;">#<%= room.getRoomCode() %></div>
+            <div class="stat-val mono" style="color: var(--primary-text);">#<%= room.getRoomCode() %></div>
         </div>
 
         <div class="stat-card">
             <div class="stat-card-top">
                 <span class="stat-label">SOCKET UDP MULTICAST</span>
-                <div class="stat-icon-badge" style="background: linear-gradient(135deg, #06B6D4, #3B82F6);">
+                <div class="stat-icon-badge" style="background: var(--whisper-bg); color: var(--whisper);">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"></path>
                         <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"></path>
@@ -168,7 +168,7 @@
                     </svg>
                 </div>
             </div>
-            <div class="stat-val" style="font-size: 16px; font-family: monospace; margin-top: 10px;">
+            <div class="stat-val mono" style="font-size: 16px;">
                 <%= room.getMulticastIp() %>:<%= room.getMulticastPort() %>
             </div>
         </div>
@@ -176,7 +176,7 @@
         <div class="stat-card">
             <div class="stat-card-top">
                 <span class="stat-label">THÀNH VIÊN ONLINE</span>
-                <div class="stat-icon-badge" style="background: linear-gradient(135deg, #10B981, #059669);">
+                <div class="stat-icon-badge" style="background: var(--accent-light); color: var(--accent);">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
@@ -185,20 +185,20 @@
                     </svg>
                 </div>
             </div>
-            <div class="stat-val" style="color: var(--accent);"><%= room.getUserCount() %> / <%= room.getMaxUsers() %></div>
+            <div class="stat-val" style="color: var(--accent-text);"><%= room.getUserCount() %> / <%= room.getMaxUsers() %></div>
         </div>
 
         <div class="stat-card">
             <div class="stat-card-top">
                 <span class="stat-label">TRẠNG THÁI PHÒNG</span>
-                <div class="stat-icon-badge" style="background: var(--admin-gradient);">
+                <div class="stat-icon-badge" style="background: var(--warning-light); color: var(--warning);">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                 </div>
             </div>
-            <div class="stat-val" style="margin-top: 6px;">
+            <div class="stat-val" style="margin-top: 2px;">
                 <span class="badge <%= "ACTIVE".equals(room.getStatus()) ? "badge-online" : "badge-admin-crown" %>" id="adminRoomStatus" style="font-size: 13px; padding: 4px 12px;">
                     <%= room.getStatus() %>
                 </span>
@@ -207,12 +207,12 @@
     </div>
 
     <!-- ACTIONS BAR & REPORTS -->
-    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 18px 22px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; box-shadow: var(--shadow-sm);">
+    <div class="admin-actions-bar">
         <div>
             <div style="font-size: 15px; font-weight: 700;">Xuất File Báo Cáo Dữ Liệu &amp; Thao Tác Phòng</div>
             <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">Tải danh sách thành viên chi tiết (Excel UTF-8 BOM hoặc Bản in PDF) &amp; điều hành phòng</div>
         </div>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <div class="admin-actions-buttons">
             <a href="api/admin?action=export_csv&roomCode=<%= room.getRoomCode() %>" class="btn btn-primary" target="_blank" title="Tải file Excel CSV">
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -255,6 +255,7 @@
                 <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">Trực tuyến</span>
             </span>
         </div>
+        <div class="table-responsive">
         <table>
             <thead>
             <tr>
@@ -299,12 +300,14 @@
                 <td><strong><%= u.getMessageCount() %></strong> tin</td>
                 <td>
                     <% if (!isUserAdmin) { %>
-                    <button type="button" class="btn btn-danger-subtle" style="padding: 4px 10px; font-size: 11.5px;" onclick="kickUser('<%= u.getUserId() %>', '<%= u.getUsername() %>')">
-                        Mời ra
-                    </button>
-                    <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11.5px; margin-left: 4px;" onclick="muteUser('<%= u.getUserId() %>')">
-                        <%= u.isMuted() ? "🔊 Bật tiếng" : "🔇 Tắt tiếng" %>
-                    </button>
+                    <div style="display: flex; gap: 6px; flex-wrap: nowrap; white-space: nowrap;">
+                        <button type="button" class="btn btn-danger-subtle" style="padding: 6px 10px; font-size: 11.5px;" onclick="kickUser('<%= u.getUserId() %>', '<%= u.getUsername() %>')">
+                            Mời ra
+                        </button>
+                        <button type="button" class="btn btn-secondary" style="padding: 6px 10px; font-size: 11.5px;" onclick="muteUser('<%= u.getUserId() %>')">
+                            <%= u.isMuted() ? "🔊 Bật tiếng" : "🔇 Tắt tiếng" %>
+                        </button>
+                    </div>
                     <% } else { %>
                     <span style="font-size: 12px; color: #b45309; font-weight: 700;">👑 Quản trị viên</span>
                     <% } %>
@@ -321,6 +324,7 @@
             <% } %>
             </tbody>
         </table>
+        </div>
     </div>
 
     <% } %>

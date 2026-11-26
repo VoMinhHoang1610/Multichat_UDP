@@ -21,7 +21,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sảnh Chờ Phòng Chat - UDP Multichat Enterprise</title>
     <!-- Cache-busting CSS query -->
-    <link rel="stylesheet" href="css/style.css?v=3.0.<%= System.currentTimeMillis() %>">
+    <link rel="stylesheet" href="css/style.css?v=9.0.<%= System.currentTimeMillis() %>">
 </head>
 <body>
 
@@ -38,9 +38,9 @@
                 <h2>
                     <span><%= account.getFullName() %></span>
                     <% if (isAdmin) { %>
-                    <span class="badge badge-admin-crown">👑 Quản Trị Viên (ADMIN)</span>
+                    <span class="badge badge-admin-crown">Quản Trị Viên</span>
                     <% } else { %>
-                    <span class="badge badge-member">👤 Thành Viên (MEMBER)</span>
+                    <span class="badge badge-member">Thành Viên</span>
                     <% } %>
                 </h2>
                 <p>
@@ -125,7 +125,7 @@
             <form onsubmit="handleJoinSubmit(event)">
                 <div class="form-row">
                     <label class="form-label" for="joinRoomCode">CHỌN HOẶC NHẬP MÃ PHÒNG CHAT (ROOM CODE) *</label>
-                    <div style="display: flex; gap: 10px;">
+                    <div class="join-inline-row" style="display: flex; gap: 10px;">
                         <div class="input-group" style="flex: 1;">
                             <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="4" y1="9" x2="20" y2="9"></line>
@@ -166,10 +166,10 @@
                             <div>
                                 <div class="room-card-meta">
                                     <span>UDP: <%= r.getMulticastIp() %>:<%= r.getMulticastPort() %></span>
-                                    <span>👥 <%= r.getUserCount() %>/<%= r.getMaxUsers() %></span>
+                                    <span><%= r.getUserCount() %>/<%= r.getMaxUsers() %> thành viên</span>
                                 </div>
                                 <div class="room-card-footer">
-                                    <button type="button" class="btn btn-primary" style="width: 100%; height: 38px; font-size: 13px;" onclick="selectAndJoinRoom('<%= r.getRoomCode() %>')">
+                                    <button type="button" class="btn btn-primary" style="width: 100%;" onclick="selectAndJoinRoom('<%= r.getRoomCode() %>')">
                                         Tham Gia Phòng
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <polyline points="9 18 15 12 9 6"></polyline>
@@ -264,7 +264,7 @@
                         <p class="room-card-desc"><%= r.getDescription() %></p>
 
                         <% if (isAdmin) { %>
-                        <div style="margin-top: 10px; padding: 10px 12px; border-radius: var(--radius-md); background: var(--surface-alt); font-size: 11.5px; font-family: monospace; display: flex; flex-direction: column; gap: 3px;">
+                        <div style="margin-top: 12px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--surface-alt); border: 1px solid var(--border); font-size: 12px; font-family: var(--font-mono); display: flex; flex-direction: column; gap: 4px;">
                             <div>Socket: <strong><%= r.getMulticastIp() %>:<%= r.getMulticastPort() %></strong></div>
                             <div>Admin tạo: <strong><%= r.getAdminName() %></strong></div>
                             <div>Lưu trữ: <strong><%= r.getRecentMessages(1000).size() %></strong> tin nhắn</div>
@@ -272,12 +272,12 @@
                         <% } %>
                     </div>
 
-                    <div style="margin-top: 16px; display: flex; gap: 8px;">
-                        <button type="button" class="btn btn-primary" style="flex: 1; height: 38px; font-size: 13px;" onclick="selectAndJoinRoom('<%= r.getRoomCode() %>')">
+                    <div class="room-card-footer">
+                        <button type="button" class="btn btn-primary" style="flex: 1;" onclick="selectAndJoinRoom('<%= r.getRoomCode() %>')">
                             Vào Chat
                         </button>
                         <% if (isAdmin) { %>
-                        <a href="admin.jsp?room=<%= r.getRoomCode() %>" class="btn btn-secondary" style="height: 38px; font-size: 13px;" title="Quản trị phòng chat này">
+                        <a href="admin.jsp?room=<%= r.getRoomCode() %>" class="btn btn-secondary" title="Quản trị phòng chat này">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="3"></circle>
                                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
