@@ -121,6 +121,39 @@ public class ChatMessage implements Serializable {
     }
 
     /**
+     * Trich xuat targetUserId tu extraData (neu co) de dinh danh chinh xac nguoi nhan ngay ca khi doi ten.
+     */
+    public String getTargetUserId() {
+        return extractJsonStringField(extraData, "targetUserId");
+    }
+
+    private static String extractJsonStringField(String json, String fieldName) {
+        if (json == null || json.isEmpty() || fieldName == null || fieldName.isEmpty()) {
+            return "";
+        }
+        String key = "\"" + fieldName + "\":\"";
+        int idx = json.indexOf(key);
+        if (idx < 0) return "";
+        int start = idx + key.length();
+        StringBuilder sb = new StringBuilder();
+        boolean escaped = false;
+        for (int i = start; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (escaped) {
+                sb.append(c);
+                escaped = false;
+            } else if (c == '\\') {
+                escaped = true;
+            } else if (c == '"') {
+                return sb.toString();
+            } else {
+                sb.append(c);
+            }
+        }
+        return "";
+    }
+
+    /**
      * Ghi cac truong theo giao thuc nhi phan MCUP.
      */
     public byte[] toBytes() throws IOException {
@@ -228,11 +261,24 @@ public class ChatMessage implements Serializable {
 
     public static ChatMessage createFile(String senderId, String senderName, String avatarUrl,
                                          String roomCode, String fileName, long fileSize, String fileUrl, String role) {
-        String extra = "{\"fileName\":\"" + escapeJson(fileName) + "\",\"fileSize\":" + fileSize
-                + ",\"fileUrl\":\"" + escapeJson(fileUrl) + "\",\"role\":\"" + (role != null ? role : "MEMBER") + "\"}";
+        return createFile(senderId, senderName, avatarUrl, roomCode, fileName, fileSize, fileUrl, role, "", "");
+    }
+
+    public static ChatMessage createFile(String senderId, String senderName, String avatarUrl,
+                                         String roomCode, String fileName, long fileSize, String fileUrl, String role,
+                                         String targetUser, String targetUserId) {
+        StringBuilder extra = new StringBuilder();
+        extra.append("{\"fileName\":\"").append(escapeJson(fileName))
+                .append("\",\"fileSize\":").append(fileSize)
+                .append(",\"fileUrl\":\"").append(escapeJson(fileUrl))
+                .append("\",\"role\":\"").append(role != null ? escapeJson(role) : "MEMBER").append("\"");
+        if (targetUserId != null && !targetUserId.isEmpty()) {
+            extra.append(",\"targetUserId\":\"").append(escapeJson(targetUserId)).append("\"");
+        }
+        extra.append("}");
         String content = "Đã gửi tệp: " + fileName;
-        return new ChatMessage(MessageType.FILE, senderId, senderName, content, "",
-                System.currentTimeMillis(), roomCode, avatarUrl, extra);
+        return new ChatMessage(MessageType.FILE, senderId, senderName, content, targetUser != null ? targetUser : "",
+                System.currentTimeMillis(), roomCode, avatarUrl, extra.toString());
     }
 
     public static ChatMessage createFolder(String senderId, String senderName, String avatarUrl,
@@ -242,11 +288,25 @@ public class ChatMessage implements Serializable {
 
     public static ChatMessage createFolder(String senderId, String senderName, String avatarUrl,
                                            String roomCode, String folderName, int fileCount, long totalSize, String zipUrl, String role) {
-        String extra = "{\"folderName\":\"" + escapeJson(folderName) + "\",\"fileCount\":" + fileCount
-                + ",\"totalSize\":" + totalSize + ",\"zipUrl\":\"" + escapeJson(zipUrl) + "\",\"role\":\"" + (role != null ? role : "MEMBER") + "\"}";
+        return createFolder(senderId, senderName, avatarUrl, roomCode, folderName, fileCount, totalSize, zipUrl, role, "", "");
+    }
+
+    public static ChatMessage createFolder(String senderId, String senderName, String avatarUrl,
+                                           String roomCode, String folderName, int fileCount, long totalSize, String zipUrl, String role,
+                                           String targetUser, String targetUserId) {
+        StringBuilder extra = new StringBuilder();
+        extra.append("{\"folderName\":\"").append(escapeJson(folderName))
+                .append("\",\"fileCount\":").append(fileCount)
+                .append(",\"totalSize\":").append(totalSize)
+                .append(",\"zipUrl\":\"").append(escapeJson(zipUrl))
+                .append("\",\"role\":\"").append(role != null ? escapeJson(role) : "MEMBER").append("\"");
+        if (targetUserId != null && !targetUserId.isEmpty()) {
+            extra.append(",\"targetUserId\":\"").append(escapeJson(targetUserId)).append("\"");
+        }
+        extra.append("}");
         String content = "Đã gửi thư mục: " + folderName + " (" + fileCount + " tệp)";
-        return new ChatMessage(MessageType.FOLDER, senderId, senderName, content, "",
-                System.currentTimeMillis(), roomCode, avatarUrl, extra);
+        return new ChatMessage(MessageType.FOLDER, senderId, senderName, content, targetUser != null ? targetUser : "",
+                System.currentTimeMillis(), roomCode, avatarUrl, extra.toString());
     }
 
     public static ChatMessage createLink(String senderId, String senderName, String avatarUrl,
@@ -299,6 +359,7 @@ public class ChatMessage implements Serializable {
         sb.append("\"roomCode\":\"").append(escapeJson(roomCode)).append("\",");
         sb.append("\"content\":\"").append(escapeJson(content)).append("\",");
         sb.append("\"targetUser\":\"").append(escapeJson(targetUser)).append("\",");
+        sb.append("\"targetUserId\":\"").append(escapeJson(getTargetUserId())).append("\",");
         sb.append("\"timestamp\":").append(timestamp).append(",");
         sb.append("\"formattedTime\":\"").append(getFormattedTime()).append("\",");
         sb.append("\"extraData\":").append((extraData != null && !extraData.isEmpty() && extraData.startsWith("{")) ? extraData : ("\"" + escapeJson(extraData) + "\""));

@@ -10,6 +10,29 @@ let currentUser = null;
 let lastTimestamp = 0;
 let pollTimer = null;
 let isAudioEnabled = true;
+let selectedWhisper = { userId: '', username: '' };
+
+function setWhisperTarget(userId, username) {
+  selectedWhisper.userId = (userId || '').trim();
+  selectedWhisper.username = (username || '').trim();
+}
+
+function getWhisperTarget() {
+  if (selectedWhisper.userId) {
+    return { targetUserId: selectedWhisper.userId, targetUser: selectedWhisper.username };
+  }
+  const select = document.getElementById('recipientSelect');
+  const dSelect = document.getElementById('desktopRecipientSelect');
+  const activeSelect = (select && select.value) ? select : ((dSelect && dSelect.value) ? dSelect : null);
+  if (!activeSelect) {
+    return { targetUserId: '', targetUser: '' };
+  }
+  const opt = activeSelect.options[activeSelect.selectedIndex];
+  return {
+    targetUserId: activeSelect.value,
+    targetUser: opt ? (opt.dataset.username || activeSelect.value) : activeSelect.value
+  };
+}
 
 // Khoi tao Web Audio API de tao am thanh thong bao
 let audioCtx = null;
@@ -162,6 +185,23 @@ function appendMessage(msg) {
   const isWhisper = msg.type === 'WHISPER' || (msg.targetUser && msg.targetUser.trim() !== '');
   const isSystem = msg.type === 'SYSTEM' || msg.type === 'JOIN' || msg.type === 'LEAVE' || msg.type === 'PROFILE_UPDATE';
 
+  // Loc phong thu lop Frontend: tuyet doi khong hien thi tin nhan rieng khong thuoc ve currentUser
+  if (isWhisper) {
+    if (!currentUser) return;
+    const msgTargetId = msg.targetUserId || (msg.extraData && typeof msg.extraData === 'object' ? msg.extraData.targetUserId : '');
+    let isRecipient = false;
+    if (msgTargetId && msgTargetId.trim() !== '') {
+      isRecipient = (msgTargetId === currentUser.userId);
+    } else if (msg.targetUser && msg.targetUser.trim() !== '') {
+      const targetLower = msg.targetUser.trim().toLowerCase();
+      isRecipient = (currentUser.userId && currentUser.userId.toLowerCase() === targetLower)
+        || (currentUser.username && currentUser.username.trim().toLowerCase() === targetLower);
+    }
+    if (!isSelf && !isRecipient) {
+      return;
+    }
+  }
+
   const row = document.createElement('div');
   row.id = msgId;
   row.className = `msg-row ${isSystem ? 'system' : (isSelf ? 'self' : 'other')} ${isWhisper ? 'whisper' : ''}`;
@@ -256,7 +296,14 @@ function appendMessage(msg) {
   }
 
   const avatarSrc = msg.avatarUrl || 'assets/avatars/avatar1.svg';
-  const whisperTag = isWhisper ? `<span class="badge badge-whisper">🔒 Riêng cho: ${escapeHtml(msg.targetUser || 'Bạn')}</span>` : '';
+  let whisperTag = '';
+  if (isWhisper) {
+    if (isSelf) {
+      whisperTag = `<span class="badge badge-whisper">🔒 Riêng tới ${escapeHtml(msg.targetUser || '')}</span>`;
+    } else {
+      whisperTag = `<span class="badge badge-whisper">🔒 ${escapeHtml(msg.senderName || 'Ai đó')} nhắn riêng cho bạn</span>`;
+    }
+  }
 
   // Kiem tra vai tro Admin de render badge noi bat
   let isAdminMsg = false;
@@ -312,8 +359,7 @@ async function sendChatMessage() {
   const text = textarea.value.trim();
   if (!text) return;
 
-  const recipientSelect = document.getElementById('recipientSelect');
-  const targetUser = recipientSelect ? recipientSelect.value : '';
+  const whisper = getWhisperTarget();
 
   const detectedUrl = extractUrl(text);
   let postData = new URLSearchParams();
@@ -329,8 +375,9 @@ async function sendChatMessage() {
     postData.append('content', text);
   }
 
-  if (targetUser) {
-    postData.append('targetUser', targetUser);
+  if (whisper.targetUserId) {
+    postData.append('targetUserId', whisper.targetUserId);
+    postData.append('targetUser', whisper.targetUser);
   }
 
   textarea.value = '';
@@ -354,19 +401,28 @@ async function sendChatMessage() {
 // Gui Sticker
 async function sendSticker(pack, stickerId, stickerUrl) {
   togglePicker(false);
+  const whisper = getWhisperTarget();
   const postData = new URLSearchParams();
   postData.append('type', 'STICKER');
   postData.append('content', '[Sticker]');
   postData.append('pack', pack);
   postData.append('stickerId', stickerId);
   postData.append('stickerUrl', stickerUrl);
+  if (whisper.targetUserId) {
+    postData.append('targetUserId', whisper.targetUserId);
+    postData.append('targetUser', whisper.targetUser);
+  }
 
   try {
-    await fetch('api/chat?action=send', {
+    const resp = await fetch('api/chat?action=send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
       body: postData.toString()
     });
+    const res = await resp.json();
+    if (!res.success) {
+      alert(res.message || 'Không thể gửi sticker.');
+    }
   } catch (err) {
     alert('Lỗi gửi sticker.');
   }
@@ -386,9 +442,14 @@ async function uploadFile(fileInput) {
   const file = fileInput.files[0];
   if (!file) return;
 
+  const whisper = getWhisperTarget();
   const formData = new FormData();
   formData.append('uploadType', 'file');
   formData.append('file', file);
+  if (whisper.targetUserId) {
+    formData.append('targetUserId', whisper.targetUserId);
+    formData.append('targetUser', whisper.targetUser);
+  }
 
   try {
     const resp = await fetch('api/upload', {
@@ -418,9 +479,14 @@ async function uploadFolder(folderInput) {
     }
   }
 
+  const whisper = getWhisperTarget();
   const formData = new FormData();
   formData.append('uploadType', 'folder');
   formData.append('folderName', folderName);
+  if (whisper.targetUserId) {
+    formData.append('targetUserId', whisper.targetUserId);
+    formData.append('targetUser', whisper.targetUser);
+  }
 
   for (let i = 0; i < files.length; i++) {
     formData.append('files', files[i]);
@@ -456,10 +522,11 @@ function renderMembersList(members) {
   if (headerOnlineText) headerOnlineText.innerText = `${members.length} người trực tuyến`;
   if (!container) return;
 
-  const currentSelectedUser = select ? select.value : '';
+  const desktopSelect = document.getElementById('desktopRecipientSelect');
+  const currentSelectedId = selectedWhisper.userId || (select ? select.value : '') || (desktopSelect ? desktopSelect.value : '');
+  let matchedSelectedUser = null;
 
   container.innerHTML = '';
-  const desktopSelect = document.getElementById('desktopRecipientSelect');
   if (select) {
     select.innerHTML = '<option value="">Cả phòng (Tất cả)</option>';
   }
@@ -508,15 +575,16 @@ function renderMembersList(members) {
       `;
 
       if (!isSelf) {
+        if (currentSelectedId && u.userId === currentSelectedId) {
+          matchedSelectedUser = u;
+        }
         item.addEventListener('click', () => {
-          if (select) {
-            select.value = u.username;
-          }
-          if (desktopSelect) {
-            desktopSelect.value = u.username;
-          }
           if (typeof updateWhisperState === 'function') {
-            updateWhisperState(u.username);
+            updateWhisperState(u.userId, u.username);
+          } else {
+            setWhisperTarget(u.userId, u.username);
+            if (select) select.value = u.userId;
+            if (desktopSelect) desktopSelect.value = u.userId;
           }
           if (typeof toggleInfoDrawer === 'function') {
             toggleInfoDrawer(false);
@@ -533,9 +601,10 @@ function renderMembersList(members) {
 
         if (select) {
           const opt = document.createElement('option');
-          opt.value = u.username;
+          opt.value = u.userId;
+          opt.dataset.username = u.username;
           opt.innerText = `🔒 Nhắn riêng: ${u.username}`;
-          if (u.username === currentSelectedUser) {
+          if (u.userId === currentSelectedId) {
             opt.selected = true;
           }
           select.appendChild(opt);
@@ -543,9 +612,10 @@ function renderMembersList(members) {
 
         if (desktopSelect) {
           const opt2 = document.createElement('option');
-          opt2.value = u.username;
+          opt2.value = u.userId;
+          opt2.dataset.username = u.username;
           opt2.innerText = `🔒 ${u.username}`;
-          if (u.username === currentSelectedUser) {
+          if (u.userId === currentSelectedId) {
             opt2.selected = true;
           }
           desktopSelect.appendChild(opt2);
@@ -558,6 +628,19 @@ function renderMembersList(members) {
 
   renderGroup('👑 QUẢN TRỊ VIÊN (ADMINS)', admins, true);
   renderGroup('👤 THÀNH VIÊN (MEMBERS)', regularMembers, false);
+
+  if (currentSelectedId) {
+    if (matchedSelectedUser) {
+      if (typeof updateWhisperState === 'function') {
+        updateWhisperState(matchedSelectedUser.userId, matchedSelectedUser.username);
+      }
+    } else {
+      // Nguoi nhan da roi phong hoac bi kick -> tu dong huy trang thai nhan rieng
+      if (typeof clearWhisper === 'function') {
+        clearWhisper();
+      }
+    }
+  }
 }
 
 function scrollToBottom() {

@@ -52,11 +52,36 @@ public class FileUploadServlet extends HttpServlet {
             return;
         }
 
-        // Kiem tra nguoi dung bi tat tieng
+        // Kiem tra nguoi dung con trong phong hay bi tat tieng
         UserProfile roomUser = room.getUser(user.getUserId());
-        if (roomUser != null && roomUser.isMuted()) {
+        if (roomUser == null) {
+            out.print("{\"success\":false,\"message\":\"Bạn không còn trong phòng chat này.\"}");
+            return;
+        }
+        if (roomUser.isMuted()) {
             out.print("{\"success\":false,\"message\":\"Bạn đã bị Admin tắt tiếng trong phòng này!\"}");
             return;
+        }
+
+        String targetUser = req.getParameter("targetUser");
+        String targetUserId = req.getParameter("targetUserId");
+        String resolvedTargetName = "";
+        String resolvedTargetId = "";
+        boolean hasWhisperTarget = (targetUser != null && !targetUser.trim().isEmpty())
+                || (targetUserId != null && !targetUserId.trim().isEmpty());
+
+        if (hasWhisperTarget) {
+            UserProfile targetProfile = room.findTargetUser(targetUserId, targetUser);
+            if (targetProfile == null) {
+                out.print("{\"success\":false,\"message\":\"Người nhận tệp riêng không tồn tại hoặc đã rời phòng.\"}");
+                return;
+            }
+            if (targetProfile.getUserId().equals(user.getUserId())) {
+                out.print("{\"success\":false,\"message\":\"Bạn không thể tự gửi tệp riêng cho chính mình.\"}");
+                return;
+            }
+            resolvedTargetName = targetProfile.getUsername();
+            resolvedTargetId = targetProfile.getUserId();
         }
 
         String uploadType = req.getParameter("uploadType"); // "file" hoac "folder"
@@ -123,7 +148,9 @@ public class FileUploadServlet extends HttpServlet {
                     fileParts.size(),
                     zipFile.length(),
                     zipUrl,
-                    role
+                    role,
+                    resolvedTargetName,
+                    resolvedTargetId
             );
 
             // Phat qua UDP Multicast
@@ -171,7 +198,9 @@ public class FileUploadServlet extends HttpServlet {
                     originalName,
                     savedFile.length(),
                     fileUrl,
-                    role
+                    role,
+                    resolvedTargetName,
+                    resolvedTargetId
             );
 
             // Phat qua UDP Multicast

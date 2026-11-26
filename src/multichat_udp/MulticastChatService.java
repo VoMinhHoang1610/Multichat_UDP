@@ -378,13 +378,39 @@ public class MulticastChatService {
             case WHISPER:
                 // Cap nhat thoi diem hoat dong cua nguoi gui.
                 activeUsers.put(sender, System.currentTimeMillis());
-                // Chi hien tin rieng cho nguoi gui hoac ten nhan; chua ma hoa.
-                if (isSelf || (username != null && username.equalsIgnoreCase(message.getTargetUser()))) {
+                // Chi hien tin rieng cho nguoi gui hoac nguoi nhan.
+                if (isWhisperVisible(message, isSelf)) {
                     // Bao tin moi kem co phan biet tin cua minh.
                     notifyMessageReceived(message, isSelf);
                 }
                 break;
+
+            // Cac loai thong diep da phuong tien (co the la cong khai hoac nhan rieng)
+            case STICKER:
+            case FILE:
+            case FOLDER:
+            case LINK:
+                activeUsers.put(sender, System.currentTimeMillis());
+                if (!message.isWhisper() || isWhisperVisible(message, isSelf)) {
+                    notifyMessageReceived(message, isSelf);
+                }
+                break;
+
+            case SYSTEM:
+                notifyMessageReceived(message, isSelf);
+                break;
         }
+    }
+
+    private boolean isWhisperVisible(ChatMessage message, boolean isSelf) {
+        if (isSelf) {
+            return true;
+        }
+        String targetId = message.getTargetUserId();
+        if (targetId != null && !targetId.isEmpty()) {
+            return senderId.equals(targetId);
+        }
+        return username != null && username.equalsIgnoreCase(message.getTargetUser());
     }
 
     // Gui tin bao song va don thanh vien qua han.

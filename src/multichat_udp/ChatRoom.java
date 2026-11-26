@@ -130,6 +130,71 @@ public class ChatRoom implements Serializable {
         return activeUsers.get(userId);
     }
 
+    /**
+     * Tim thanh vien trong phong theo userId (uu tien) hoac username (khong phan biet hoa thuong).
+     */
+    public UserProfile findTargetUser(String targetUserId, String targetUsername) {
+        if (targetUserId != null && !targetUserId.trim().isEmpty()) {
+            UserProfile byId = activeUsers.get(targetUserId.trim());
+            if (byId != null) {
+                return byId;
+            }
+        }
+        if (targetUsername != null && !targetUsername.trim().isEmpty()) {
+            String trimmed = targetUsername.trim();
+            for (UserProfile u : activeUsers.values()) {
+                if (u.getUsername() != null && u.getUsername().equalsIgnoreCase(trimmed)) {
+                    return u;
+                }
+                if (u.getUserId() != null && u.getUserId().equalsIgnoreCase(trimmed)) {
+                    return u;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Kiem tra quyen xem tin nhan: tin cong khai cho tat ca, tin nhan rieng (Whisper) chi cho nguoi gui hoac nguoi nhan.
+     */
+    public static boolean isMessageVisibleTo(ChatMessage msg, UserProfile viewer) {
+        if (msg == null) {
+            return false;
+        }
+        if (!msg.isWhisper()) {
+            return true;
+        }
+        if (viewer == null) {
+            return false;
+        }
+        String viewerId = viewer.getUserId();
+        String viewerName = viewer.getUsername();
+
+        // Nguoi gui luon xem duoc tin nhan rieng cua minh
+        if (viewerId != null && !viewerId.isEmpty() && viewerId.equals(msg.getSenderId())) {
+            return true;
+        }
+
+        // Neu tin nhan co dinh kem targetUserId, chi so khop chinh xac theo userId
+        String targetId = msg.getTargetUserId();
+        if (targetId != null && !targetId.isEmpty()) {
+            return viewerId != null && viewerId.equals(targetId);
+        }
+
+        // Fallback cho tin nhan tu CLI/Desktop chi co targetUser (username)
+        String targetName = msg.getTargetUser();
+        if (targetName != null && !targetName.trim().isEmpty()) {
+            String trimmedTarget = targetName.trim();
+            if (viewerId != null && viewerId.equalsIgnoreCase(trimmedTarget)) {
+                return true;
+            }
+            if (viewerName != null && viewerName.equalsIgnoreCase(trimmedTarget)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public List<UserProfile> getActiveUsersList() {
         return new ArrayList<>(activeUsers.values());
     }
@@ -148,12 +213,36 @@ public class ChatRoom implements Serializable {
         return result;
     }
 
+    public List<ChatMessage> getMessagesSince(long lastTimestamp, UserProfile viewer) {
+        List<ChatMessage> result = new ArrayList<>();
+        for (ChatMessage m : messageHistory) {
+            if (m.getTimestamp() > lastTimestamp && isMessageVisibleTo(m, viewer)) {
+                result.add(m);
+            }
+        }
+        return result;
+    }
+
     public List<ChatMessage> getRecentMessages(int count) {
         int size = messageHistory.size();
         if (size <= count) {
             return new ArrayList<>(messageHistory);
         }
         return new ArrayList<>(messageHistory.subList(size - count, size));
+    }
+
+    public List<ChatMessage> getRecentMessages(int count, UserProfile viewer) {
+        List<ChatMessage> visible = new ArrayList<>();
+        for (ChatMessage m : messageHistory) {
+            if (isMessageVisibleTo(m, viewer)) {
+                visible.add(m);
+            }
+        }
+        int size = visible.size();
+        if (size <= count) {
+            return visible;
+        }
+        return new ArrayList<>(visible.subList(size - count, size));
     }
 
     public void clearHistory() {

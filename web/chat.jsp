@@ -592,18 +592,37 @@
         if (typeof togglePicker === 'function') togglePicker(true);
     }
 
-    function updateWhisperState(targetUser) {
+    function updateWhisperState(targetUserId, targetUserName) {
         const ind = document.getElementById('whisperIndicator');
         const nameEl = document.getElementById('whisperTargetName');
         const select = document.getElementById('recipientSelect');
         const dSelect = document.getElementById('desktopRecipientSelect');
 
-        if (targetUser && targetUser.trim() !== '') {
+        const cleanId = (targetUserId || '').trim();
+        let displayName = (targetUserName || '').trim();
+
+        if (cleanId !== '') {
+            if (!displayName && select) {
+                const opt = Array.from(select.options).find(o => o.value === cleanId);
+                if (opt) displayName = opt.dataset.username || opt.text;
+            }
+            if (!displayName && dSelect) {
+                const opt = Array.from(dSelect.options).find(o => o.value === cleanId);
+                if (opt) displayName = opt.dataset.username || opt.text;
+            }
+            if (!displayName) displayName = cleanId;
+
+            if (typeof setWhisperTarget === 'function') {
+                setWhisperTarget(cleanId, displayName);
+            }
             if (ind) ind.style.display = 'flex';
-            if (nameEl) nameEl.innerText = targetUser;
-            if (select) select.value = targetUser;
-            if (dSelect) dSelect.value = targetUser;
+            if (nameEl) nameEl.innerText = displayName;
+            if (select) select.value = cleanId;
+            if (dSelect) dSelect.value = cleanId;
         } else {
+            if (typeof setWhisperTarget === 'function') {
+                setWhisperTarget('', '');
+            }
             if (ind) ind.style.display = 'none';
             if (nameEl) nameEl.innerText = '';
             if (select) select.value = '';
@@ -612,13 +631,15 @@
     }
 
     function clearWhisper() {
-        updateWhisperState('');
+        updateWhisperState('', '');
     }
 
     function onRecipientChange() {
         const select = document.getElementById('recipientSelect');
         if (select) {
-            updateWhisperState(select.value);
+            const opt = select.options[select.selectedIndex];
+            const uname = opt ? (opt.dataset.username || '') : '';
+            updateWhisperState(select.value, uname);
             toggleComposerActionSheet(false);
         }
     }
@@ -626,7 +647,9 @@
     function onDesktopRecipientChange() {
         const dSelect = document.getElementById('desktopRecipientSelect');
         if (dSelect) {
-            updateWhisperState(dSelect.value);
+            const opt = dSelect.options[dSelect.selectedIndex];
+            const uname = opt ? (opt.dataset.username || '') : '';
+            updateWhisperState(dSelect.value, uname);
         }
     }
 
