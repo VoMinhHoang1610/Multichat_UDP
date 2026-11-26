@@ -175,6 +175,19 @@
                     <button type="button" class="whisper-clear-btn" onclick="clearWhisper()" title="Hủy nhắn riêng">✕</button>
                 </div>
 
+                <!-- Reply Indicator Chip -->
+                <div id="replyIndicator" class="reply-indicator" style="display: none;">
+                    <span class="reply-text">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 14 4 9 9 4"></polyline>
+                            <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                        </svg>
+                        <span class="reply-label">Đang trả lời <strong id="replyTargetSender"></strong>:</span>
+                        <span id="replyTargetPreview" class="reply-preview-text"></span>
+                    </span>
+                    <button type="button" class="whisper-clear-btn" onclick="clearReply()" title="Hủy trả lời">✕</button>
+                </div>
+
                 <!-- Floating Composer Dock -->
                 <div class="composer-floating-dock">
                     <input type="file" id="fileUploadInput" style="display: none;" onchange="uploadFile(this)">

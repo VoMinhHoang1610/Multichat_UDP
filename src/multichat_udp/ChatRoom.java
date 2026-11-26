@@ -27,6 +27,8 @@ public class ChatRoom implements Serializable {
 
     private final ConcurrentHashMap<String, UserProfile> activeUsers = new ConcurrentHashMap<>();
     private final CopyOnWriteArrayList<ChatMessage> messageHistory = new CopyOnWriteArrayList<>();
+    // Luu cam xuc theo khoa "timestamp_senderId" -> (userId -> emoji)
+    private final ConcurrentHashMap<String, ConcurrentHashMap<String, String>> messageReactions = new ConcurrentHashMap<>();
     private transient UDPMulticastEngine udpEngine;
 
     public ChatRoom(String roomCode, String roomName, String description, String adminName,
@@ -102,6 +104,20 @@ public class ChatRoom implements Serializable {
             return;
         }
 
+        // Xu ly thu hoi tin nhan tu goi UDP/Web
+        if (msg.getType() == MessageType.RECALL) {
+            String tsStr = ChatMessage.extractJsonStringField(msg.getExtraData(), "targetTimestamp");
+            String targetSenderId = ChatMessage.extractJsonStringField(msg.getExtraData(), "targetSenderId");
+            try {
+                long targetTs = Long.parseLong(tsStr);
+                ChatMessage targetMsg = findMessage(targetTs, targetSenderId);
+                if (targetMsg != null) {
+                    markRecalled(targetMsg, msg.getSenderName());
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
         // Xu ly roi nhom
         if (msg.getType() == MessageType.LEAVE && senderId != null) {
             activeUsers.remove(senderId);
@@ -112,6 +128,110 @@ public class ChatRoom implements Serializable {
         if (messageHistory.size() > MAX_HISTORY) {
             messageHistory.remove(0);
         }
+    }
+
+    public static String getMessageKey(long timestamp, String senderId) {
+        return timestamp + "_" + (senderId != null ? senderId : "");
+    }
+
+    public ChatMessage findMessage(long targetTimestamp, String targetSenderId) {
+        if (targetTimestamp <= 0 || targetSenderId == null) {
+            return null;
+        }
+        for (int i = messageHistory.size() - 1; i >= 0; i--) {
+            ChatMessage m = messageHistory.get(i);
+            if (m.getType() != MessageType.RECALL && m.getType() != MessageType.REACTION
+                    && m.getTimestamp() == targetTimestamp
+                    && targetSenderId.equals(m.getSenderId())) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    public void markRecalled(ChatMessage targetMsg, String actorName) {
+        if (targetMsg == null) return;
+        String targetUserId = targetMsg.getTargetUserId();
+        String safeActor = (actorName != null ? actorName : "").replace("\\", "\\\\").replace("\"", "\\\"");
+        StringBuilder extra = new StringBuilder("{\"recalled\":true,\"recalledBy\":\"")
+                .append(safeActor).append("\"");
+        if (targetUserId != null && !targetUserId.isEmpty()) {
+            extra.append(",\"targetUserId\":\"").append(targetUserId.replace("\\", "\\\\").replace("\"", "\\\"")).append("\"");
+        }
+        extra.append("}");
+
+        targetMsg.setType(targetMsg.isWhisper() ? MessageType.WHISPER : MessageType.CHAT);
+        targetMsg.setContent("🚫 Tin nhắn đã được thu hồi");
+        targetMsg.setExtraData(extra.toString());
+        messageReactions.remove(getMessageKey(targetMsg.getTimestamp(), targetMsg.getSenderId()));
+    }
+
+    public Map<String, Integer> toggleReaction(long targetTimestamp, String targetSenderId, String userId, String emoji) {
+        String key = getMessageKey(targetTimestamp, targetSenderId);
+        ConcurrentHashMap<String, String> userMap = messageReactions.computeIfAbsent(key, k -> new ConcurrentHashMap<>());
+        if (emoji == null || emoji.trim().isEmpty()) {
+            userMap.remove(userId);
+        } else {
+            String prev = userMap.get(userId);
+            if (emoji.equals(prev)) {
+                userMap.remove(userId);
+            } else {
+                userMap.put(userId, emoji);
+            }
+        }
+        return aggregateReactions(userMap);
+    }
+
+    public String getMessageReactionsJson(long targetTimestamp, String targetSenderId, String viewerId) {
+        String key = getMessageKey(targetTimestamp, targetSenderId);
+        ConcurrentHashMap<String, String> userMap = messageReactions.get(key);
+        if (userMap == null || userMap.isEmpty()) {
+            return "{}";
+        }
+        Map<String, Integer> counts = aggregateReactions(userMap);
+        String myReaction = (viewerId != null) ? userMap.get(viewerId) : null;
+        StringBuilder sb = new StringBuilder("{");
+        sb.append("\"counts\":{");
+        boolean first = true;
+        for (Map.Entry<String, Integer> e : counts.entrySet()) {
+            if (!first) sb.append(",");
+            sb.append("\"").append(e.getKey().replace("\"", "\\\"")).append("\":").append(e.getValue());
+            first = false;
+        }
+        sb.append("},\"myReaction\":\"").append(myReaction != null ? myReaction.replace("\"", "\\\"") : "").append("\"}");
+        return sb.toString();
+    }
+
+    public String getAllReactionsJson(String viewerId) {
+        StringBuilder sb = new StringBuilder("{");
+        boolean firstKey = true;
+        for (Map.Entry<String, ConcurrentHashMap<String, String>> entry : messageReactions.entrySet()) {
+            ConcurrentHashMap<String, String> userMap = entry.getValue();
+            if (userMap == null || userMap.isEmpty()) continue;
+            if (!firstKey) sb.append(",");
+            sb.append("\"").append(entry.getKey().replace("\"", "\\\"")).append("\":");
+            Map<String, Integer> counts = aggregateReactions(userMap);
+            String myReaction = (viewerId != null) ? userMap.get(viewerId) : null;
+            sb.append("{\"counts\":{");
+            boolean first = true;
+            for (Map.Entry<String, Integer> e : counts.entrySet()) {
+                if (!first) sb.append(",");
+                sb.append("\"").append(e.getKey().replace("\"", "\\\"")).append("\":").append(e.getValue());
+                first = false;
+            }
+            sb.append("},\"myReaction\":\"").append(myReaction != null ? myReaction.replace("\"", "\\\"") : "").append("\"}");
+            firstKey = false;
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
+    private Map<String, Integer> aggregateReactions(Map<String, String> userMap) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (String emoji : userMap.values()) {
+            counts.put(emoji, counts.getOrDefault(emoji, 0) + 1);
+        }
+        return counts;
     }
 
     public boolean addUser(UserProfile user) {
@@ -234,6 +354,9 @@ public class ChatRoom implements Serializable {
     public List<ChatMessage> getRecentMessages(int count, UserProfile viewer) {
         List<ChatMessage> visible = new ArrayList<>();
         for (ChatMessage m : messageHistory) {
+            if (m.getType() == MessageType.RECALL || m.getType() == MessageType.REACTION) {
+                continue;
+            }
             if (isMessageVisibleTo(m, viewer)) {
                 visible.add(m);
             }

@@ -127,7 +127,7 @@ public class ChatMessage implements Serializable {
         return extractJsonStringField(extraData, "targetUserId");
     }
 
-    private static String extractJsonStringField(String json, String fieldName) {
+    public static String extractJsonStringField(String json, String fieldName) {
         if (json == null || json.isEmpty() || fieldName == null || fieldName.isEmpty()) {
             return "";
         }

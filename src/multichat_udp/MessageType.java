@@ -14,7 +14,9 @@ public enum MessageType {
     LINK((byte) 8),
     STICKER((byte) 9),
     PROFILE_UPDATE((byte) 10),
-    SYSTEM((byte) 11);
+    SYSTEM((byte) 11),
+    RECALL((byte) 12),
+    REACTION((byte) 13);
 
     private final byte code;
 

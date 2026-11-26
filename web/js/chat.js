@@ -11,6 +11,63 @@ let lastTimestamp = 0;
 let pollTimer = null;
 let isAudioEnabled = true;
 let selectedWhisper = { userId: '', username: '' };
+let replyingTo = null; // { msgKey, msgDomId, senderName, preview }
+const messageStore = new Map();
+const reactionStore = new Map();
+const QUICK_EMOJIS = ['👍', '❤️', '😂', '😮', '😢'];
+
+function getMessageKey(timestamp, senderId) {
+  return `${timestamp}_${senderId || ''}`;
+}
+
+function getMessageDomId(timestamp, senderId) {
+  return 'msg-' + timestamp + '-' + (senderId ? senderId.substring(0, 8) : '0');
+}
+
+function getHiddenStorageKey() {
+  const roomCode = currentRoom ? currentRoom.roomCode : 'DEFAULT';
+  const uid = currentUser ? currentUser.userId : 'anon';
+  return `hiddenMsgs_${roomCode}_${uid}`;
+}
+
+function getHiddenMessageSet() {
+  try {
+    const raw = localStorage.getItem(getHiddenStorageKey());
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw));
+  } catch (e) {
+    return new Set();
+  }
+}
+
+function isHiddenMessage(msgKey) {
+  return getHiddenMessageSet().has(msgKey);
+}
+
+function hideMessageForMe(msgKey) {
+  try {
+    const set = getHiddenMessageSet();
+    set.add(msgKey);
+    localStorage.setItem(getHiddenStorageKey(), JSON.stringify(Array.from(set)));
+  } catch (e) {
+  }
+}
+
+function showToast(text) {
+  let toast = document.getElementById('chatToastNotice');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'chatToastNotice';
+    toast.className = 'chat-toast-notice';
+    document.body.appendChild(toast);
+  }
+  toast.innerText = text;
+  toast.classList.add('show');
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2000);
+}
 
 function setWhisperTarget(userId, username) {
   selectedWhisper.userId = (userId || '').trim();
@@ -100,6 +157,16 @@ function initChat(roomData, userData) {
     if (sheet && !sheet.contains(e.target) && sheetBtn && !sheetBtn.contains(e.target)) {
       sheet.style.display = 'none';
     }
+
+    if (!e.target.closest('.msg-react-wrapper')) {
+      document.querySelectorAll('.msg-react-popup.open').forEach(el => el.classList.remove('open'));
+    }
+    if (!e.target.closest('.msg-more-wrapper')) {
+      document.querySelectorAll('.msg-more-menu.open').forEach(el => el.classList.remove('open'));
+    }
+    if (!e.target.closest('.msg-row')) {
+      document.querySelectorAll('.msg-row.actions-open').forEach(el => el.classList.remove('actions-open'));
+    }
   });
 }
 
@@ -147,20 +214,35 @@ async function pollMessages() {
 
       if (data.messages && data.messages.length > 0) {
         let hasNewFromOther = false;
+        let hasAppendedVisible = false;
         data.messages.forEach(msg => {
-          appendMessage(msg);
+          if (msg.type === 'RECALL') {
+            handleRecallEvent(msg);
+          } else if (msg.type === 'REACTION') {
+            // Reaction se duoc cap nhat dong bo ben duoi qua data.reactions
+          } else {
+            const added = appendMessage(msg);
+            if (added) hasAppendedVisible = true;
+            if (currentUser && msg.senderId !== currentUser.userId && msg.type !== 'HEARTBEAT') {
+              hasNewFromOther = true;
+            }
+          }
           if (msg.timestamp > lastTimestamp) {
             lastTimestamp = msg.timestamp;
-          }
-          if (currentUser && msg.senderId !== currentUser.userId && msg.type !== 'HEARTBEAT') {
-            hasNewFromOther = true;
           }
         });
 
         if (hasNewFromOther) {
           playNotificationSound();
         }
-        scrollToBottom();
+        if (hasAppendedVisible) {
+          scrollToBottom();
+        }
+      }
+
+      // Dong bo cam xuc (reactions) cho cac tin nhan dang hien thi
+      if (data.reactions) {
+        syncAllReactions(data.reactions);
       }
 
       // Cap nhat danh sach online
@@ -176,10 +258,13 @@ async function pollMessages() {
 // Render tin nhan vao vung cuon
 function appendMessage(msg) {
   const container = document.getElementById('chatMessages');
-  if (!container) return;
+  if (!container) return false;
 
-  const msgId = 'msg-' + msg.timestamp + '-' + (msg.senderId ? msg.senderId.substring(0, 5) : '0');
-  if (document.getElementById(msgId)) return;
+  const msgKey = getMessageKey(msg.timestamp, msg.senderId);
+  const msgId = getMessageDomId(msg.timestamp, msg.senderId);
+  if (document.getElementById(msgId)) return false;
+
+  if (isHiddenMessage(msgKey)) return false;
 
   const isSelf = currentUser && msg.senderId === currentUser.userId;
   const isWhisper = msg.type === 'WHISPER' || (msg.targetUser && msg.targetUser.trim() !== '');
@@ -187,7 +272,7 @@ function appendMessage(msg) {
 
   // Loc phong thu lop Frontend: tuyet doi khong hien thi tin nhan rieng khong thuoc ve currentUser
   if (isWhisper) {
-    if (!currentUser) return;
+    if (!currentUser) return false;
     const msgTargetId = msg.targetUserId || (msg.extraData && typeof msg.extraData === 'object' ? msg.extraData.targetUserId : '');
     let isRecipient = false;
     if (msgTargetId && msgTargetId.trim() !== '') {
@@ -198,23 +283,42 @@ function appendMessage(msg) {
         || (currentUser.username && currentUser.username.trim().toLowerCase() === targetLower);
     }
     if (!isSelf && !isRecipient) {
-      return;
+      return false;
     }
   }
 
+  const extra = (msg.extraData && typeof msg.extraData === 'object') ? msg.extraData : {};
+  const isRecalled = extra.recalled === true;
+
   const row = document.createElement('div');
   row.id = msgId;
-  row.className = `msg-row ${isSystem ? 'system' : (isSelf ? 'self' : 'other')} ${isWhisper ? 'whisper' : ''}`;
+  row.dataset.msgKey = msgKey;
+  row.className = `msg-row ${isSystem ? 'system' : (isSelf ? 'self' : 'other')} ${isWhisper ? 'whisper' : ''} ${isRecalled ? 'recalled' : ''}`;
 
   if (isSystem) {
     row.innerHTML = `<div class="msg-bubble">${escapeHtml(msg.content)} <span class="msg-time">${msg.formattedTime || ''}</span></div>`;
-    container.appendChild(row);
-    return;
+    const bubbleEl = row.querySelector('.msg-bubble');
+  if (bubbleEl) {
+    bubbleEl.addEventListener('click', (e) => {
+      if (e.target.closest('a, button, img, .msg-reply-quote')) return;
+      const wasOpen = row.classList.contains('actions-open');
+      document.querySelectorAll('.msg-row.actions-open').forEach(el => el.classList.remove('actions-open'));
+      if (!wasOpen) {
+        row.classList.add('actions-open');
+      }
+    });
   }
 
-  let bodyHtml = '';
+  container.appendChild(row);
+    return true;
+  }
 
-  if (msg.type === 'STICKER') {
+  messageStore.set(msgKey, msg);
+
+  let bodyHtml = '';
+  if (isRecalled) {
+    bodyHtml = `<div class="msg-recalled-text">🚫 Tin nhắn đã được thu hồi</div>`;
+  } else if (msg.type === 'STICKER') {
     let stickerUrl = 'assets/stickers/cat_love.svg';
     if (msg.extraData && msg.extraData.stickerUrl) {
       stickerUrl = msg.extraData.stickerUrl;
@@ -320,16 +424,65 @@ function appendMessage(msg) {
   const adminBadge = isAdminMsg ? '<span class="badge badge-admin-crown" style="font-size:10px; margin-left:4px;">👑 Admin</span>' : '';
   const senderClass = isAdminMsg ? 'admin-msg-sender' : 'msg-sender';
 
+  const replyQuoteHtml = (!isRecalled && extra.replyToId)
+    ? `<div class="msg-reply-quote" onclick="scrollToMessage('${escapeHtml(extra.replyToId)}')" title="Nhấp để xem tin nhắn gốc">
+         <div class="msg-reply-sender">${escapeHtml(extra.replyToSender || 'Tin nhắn')}</div>
+         <div class="msg-reply-preview">${escapeHtml(extra.replyToPreview || '')}</div>
+       </div>`
+    : '';
+
+  const canRecall = !isRecalled && (isSelf || (currentUser && currentUser.role === 'ADMIN'));
+  const canCopy = !isRecalled && msg.type !== 'STICKER';
+  const emojiButtonsHtml = QUICK_EMOJIS.map(em =>
+    `<button type="button" class="react-emoji-btn" onclick="sendReaction('${escapeHtml(msgKey)}','${em}')">${em}</button>`
+  ).join('');
+
+  const svgReply = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>';
+  const svgSmile = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>';
+  const svgMore = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>';
+  const svgCopy = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+  const svgTrash = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>';
+  const svgHide = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+
+  const actionsHtml = !isRecalled
+    ? `<div class="msg-actions">
+         <button type="button" class="msg-action-btn" onclick="replyToMessage('${escapeHtml(msgKey)}')" title="Trả lời">${svgReply}</button>
+         <div class="msg-react-wrapper">
+           <button type="button" class="msg-action-btn" onclick="toggleReactMenu(this)" title="Thả cảm xúc">${svgSmile}</button>
+           <div class="msg-react-popup">${emojiButtonsHtml}</div>
+         </div>
+         <div class="msg-more-wrapper">
+           <button type="button" class="msg-action-btn" onclick="toggleMoreMenu(this)" title="Tùy chọn">${svgMore}</button>
+           <div class="msg-more-menu">
+             ${canCopy ? `<button type="button" class="msg-more-item" onclick="copyMessageContent('${escapeHtml(msgKey)}')">${svgCopy}<span>Sao chép</span></button>` : ''}
+             ${canRecall ? `<button type="button" class="msg-more-item danger" onclick="recallMessage('${escapeHtml(msgKey)}')">${svgTrash}<span>Thu hồi</span></button>` : ''}
+             <button type="button" class="msg-more-item" onclick="deleteMessageForMe('${escapeHtml(msgKey)}')">${svgHide}<span>Xóa phía tôi</span></button>
+           </div>
+         </div>
+       </div>`
+    : `<div class="msg-actions">
+         <button type="button" class="msg-action-btn" onclick="deleteMessageForMe('${escapeHtml(msgKey)}')" title="Ẩn tin nhắn này">${svgHide}</button>
+       </div>`;
+
+  const reactionsHtml = !isRecalled ? `<div class="msg-reactions" id="react-${escapeHtml(msgId)}"></div>` : '';
+
   if (isSelf) {
     const selfAdminBadge = (currentUser && currentUser.role === 'ADMIN') ? '<span class="badge badge-admin-crown" style="font-size:10px; margin-left:4px;">👑 Admin</span>' : '';
     row.innerHTML = `
-      <div class="msg-bubble">
-        <div class="msg-meta">
-          ${selfAdminBadge}
-          ${whisperTag}
-          <span class="msg-time">${msg.formattedTime || ''}</span>
+      <div class="msg-content-col">
+        <div class="msg-bubble-wrap">
+          ${actionsHtml}
+          <div class="msg-bubble">
+            <div class="msg-meta">
+              ${selfAdminBadge}
+              ${whisperTag}
+              <span class="msg-time">${msg.formattedTime || ''}</span>
+            </div>
+            ${replyQuoteHtml}
+            ${bodyHtml}
+          </div>
         </div>
-        ${bodyHtml}
+        ${reactionsHtml}
       </div>
     `;
   } else {
@@ -337,18 +490,41 @@ function appendMessage(msg) {
       <div class="avatar-wrapper">
         <img src="${avatarSrc}" class="member-avatar" alt="${escapeHtml(msg.senderName)}" />
       </div>
-      <div class="msg-bubble">
-        <div class="msg-meta">
-          <span class="${senderClass}">${escapeHtml(msg.senderName)} ${adminBadge}</span>
-          ${whisperTag}
-          <span class="msg-time">${msg.formattedTime || ''}</span>
+      <div class="msg-content-col">
+        <div class="msg-bubble-wrap">
+          <div class="msg-bubble">
+            <div class="msg-meta">
+              <span class="${senderClass}">${escapeHtml(msg.senderName)} ${adminBadge}</span>
+              ${whisperTag}
+              <span class="msg-time">${msg.formattedTime || ''}</span>
+            </div>
+            ${replyQuoteHtml}
+            ${bodyHtml}
+          </div>
+          ${actionsHtml}
         </div>
-        ${bodyHtml}
+        ${reactionsHtml}
       </div>
     `;
   }
 
+  const bubbleEl = row.querySelector('.msg-bubble');
+  if (bubbleEl) {
+    bubbleEl.addEventListener('click', (e) => {
+      if (e.target.closest('a, button, img, .msg-reply-quote')) return;
+      const wasOpen = row.classList.contains('actions-open');
+      document.querySelectorAll('.msg-row.actions-open').forEach(el => el.classList.remove('actions-open'));
+      if (!wasOpen) {
+        row.classList.add('actions-open');
+      }
+    });
+  }
+
   container.appendChild(row);
+  if (!isRecalled && reactionStore.has(msgKey)) {
+    renderReactionsForMessage(msgKey);
+  }
+  return true;
 }
 
 // Gui tin nhan text hoac link
@@ -380,6 +556,12 @@ async function sendChatMessage() {
     postData.append('targetUser', whisper.targetUser);
   }
 
+  if (replyingTo) {
+    postData.append('replyToId', replyingTo.msgDomId);
+    postData.append('replyToSender', replyingTo.senderName);
+    postData.append('replyToPreview', replyingTo.preview);
+  }
+
   textarea.value = '';
   textarea.style.height = 'auto';
 
@@ -392,6 +574,9 @@ async function sendChatMessage() {
     const res = await resp.json();
     if (!res.success) {
       alert(res.message || 'Không thể gửi tin nhắn.');
+    } else {
+      clearReply();
+      pollMessages();
     }
   } catch (err) {
     alert('Lỗi kết nối khi gửi tin nhắn UDP.');
@@ -412,6 +597,11 @@ async function sendSticker(pack, stickerId, stickerUrl) {
     postData.append('targetUserId', whisper.targetUserId);
     postData.append('targetUser', whisper.targetUser);
   }
+  if (replyingTo) {
+    postData.append('replyToId', replyingTo.msgDomId);
+    postData.append('replyToSender', replyingTo.senderName);
+    postData.append('replyToPreview', replyingTo.preview);
+  }
 
   try {
     const resp = await fetch('api/chat?action=send', {
@@ -422,6 +612,9 @@ async function sendSticker(pack, stickerId, stickerUrl) {
     const res = await resp.json();
     if (!res.success) {
       alert(res.message || 'Không thể gửi sticker.');
+    } else {
+      clearReply();
+      pollMessages();
     }
   } catch (err) {
     alert('Lỗi gửi sticker.');
@@ -739,4 +932,253 @@ function copyRoomCode(code) {
   navigator.clipboard.writeText(code).then(() => {
     alert('Đã sao chép mã phòng: ' + code);
   });
+}
+
+// ===================================================================
+// CHUC NANG TIN NHAN: TRA LOI, THU HOI, XOA PHIA TOI, SAO CHEP, CAM XUC
+// ===================================================================
+
+function buildMessagePreview(msg) {
+  if (!msg) return '';
+  if (msg.type === 'STICKER') return '[Sticker]';
+  if (msg.type === 'FILE') {
+    const fName = (msg.extraData && msg.extraData.fileName) ? msg.extraData.fileName : 'Tệp đính kèm';
+    return '[Tệp] ' + fName;
+  }
+  if (msg.type === 'FOLDER') {
+    const fName = (msg.extraData && msg.extraData.folderName) ? msg.extraData.folderName : 'Thư mục';
+    return '[Thư mục] ' + fName;
+  }
+  const text = (msg.content || '').trim();
+  return text.length > 75 ? text.substring(0, 75) + '...' : text;
+}
+
+function replyToMessage(msgKey) {
+  const msg = messageStore.get(msgKey);
+  if (!msg) return;
+  const domId = getMessageDomId(msg.timestamp, msg.senderId);
+  const preview = buildMessagePreview(msg);
+  replyingTo = {
+    msgKey: msgKey,
+    msgDomId: domId,
+    senderName: msg.senderName || 'Thành viên',
+    preview: preview
+  };
+
+  const ind = document.getElementById('replyIndicator');
+  const senderEl = document.getElementById('replyTargetSender');
+  const previewEl = document.getElementById('replyTargetPreview');
+  if (senderEl) senderEl.innerText = replyingTo.senderName;
+  if (previewEl) previewEl.innerText = preview;
+  if (ind) ind.style.display = 'flex';
+
+  const input = document.getElementById('chatInput');
+  if (input) input.focus();
+}
+
+function clearReply() {
+  replyingTo = null;
+  const ind = document.getElementById('replyIndicator');
+  if (ind) ind.style.display = 'none';
+}
+
+function scrollToMessage(msgDomId) {
+  const el = document.getElementById(msgDomId);
+  if (!el) {
+    showToast('Tin nhắn gốc không còn trong khung chat hiện tại.');
+    return;
+  }
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.add('msg-highlight');
+  setTimeout(() => el.classList.remove('msg-highlight'), 1500);
+}
+
+function copyMessageContent(msgKey) {
+  const msg = messageStore.get(msgKey);
+  if (!msg || !msg.content) return;
+  navigator.clipboard.writeText(msg.content).then(() => {
+    showToast('Đã sao chép tin nhắn');
+  }).catch(() => {
+    showToast('Không thể sao chép tự động');
+  });
+}
+
+function deleteMessageForMe(msgKey) {
+  const msg = messageStore.get(msgKey);
+  hideMessageForMe(msgKey);
+  if (msg) {
+    const domId = getMessageDomId(msg.timestamp, msg.senderId);
+    const el = document.getElementById(domId);
+    if (el) el.remove();
+  } else {
+    const el = document.querySelector(`[data-msg-key="${CSS.escape(msgKey)}"]`);
+    if (el) el.remove();
+  }
+  showToast('Đã xóa tin nhắn ở phía bạn');
+}
+
+async function recallMessage(msgKey) {
+  const msg = messageStore.get(msgKey);
+  if (!msg) return;
+  if (!confirm('Thu hồi tin nhắn này với tất cả mọi người?')) return;
+
+  const postData = new URLSearchParams();
+  postData.append('action', 'recall');
+  postData.append('targetTimestamp', String(msg.timestamp));
+  postData.append('targetSenderId', msg.senderId || '');
+
+  try {
+    const resp = await fetch('api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: postData.toString()
+    });
+    const res = await resp.json();
+    if (!res.success) {
+      alert(res.message || 'Không thể thu hồi tin nhắn.');
+    } else {
+      applyRecalledState(msg.timestamp, msg.senderId);
+      pollMessages();
+    }
+  } catch (e) {
+    alert('Lỗi kết nối khi thu hồi tin nhắn.');
+  }
+}
+
+function handleRecallEvent(eventMsg) {
+  const extra = (eventMsg && eventMsg.extraData && typeof eventMsg.extraData === 'object') ? eventMsg.extraData : {};
+  const targetTs = extra.targetTimestamp;
+  const targetSenderId = extra.targetSenderId;
+  if (targetTs && targetSenderId) {
+    applyRecalledState(targetTs, targetSenderId);
+  }
+}
+
+function applyRecalledState(targetTimestamp, targetSenderId) {
+  const msgKey = getMessageKey(targetTimestamp, targetSenderId);
+  const domId = getMessageDomId(targetTimestamp, targetSenderId);
+  const row = document.getElementById(domId);
+  const stored = messageStore.get(msgKey);
+  if (stored) {
+    stored.content = '🚫 Tin nhắn đã được thu hồi';
+    stored.extraData = Object.assign({}, stored.extraData || {}, { recalled: true });
+  }
+  if (replyingTo && replyingTo.msgKey === msgKey) {
+    clearReply();
+  }
+  reactionStore.delete(msgKey);
+
+  if (!row) return;
+  row.classList.add('recalled');
+  const bubble = row.querySelector('.msg-bubble');
+  if (bubble) {
+    const meta = bubble.querySelector('.msg-meta');
+    const metaHtml = meta ? meta.outerHTML : '';
+    bubble.innerHTML = `${metaHtml}<div class="msg-recalled-text">🚫 Tin nhắn đã được thu hồi</div>`;
+  }
+  const actions = row.querySelector('.msg-actions');
+  if (actions) {
+    actions.innerHTML = `<button type="button" class="msg-action-btn" onclick="deleteMessageForMe('${escapeHtml(msgKey)}')" title="Ẩn tin nhắn này"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>`;
+  }
+  const reactionsEl = row.querySelector('.msg-reactions');
+  if (reactionsEl) {
+    reactionsEl.innerHTML = '';
+    reactionsEl.style.display = 'none';
+  }
+}
+
+function toggleMoreMenu(btnEl) {
+  const wrapper = btnEl.closest('.msg-more-wrapper');
+  if (!wrapper) return;
+  const menu = wrapper.querySelector('.msg-more-menu');
+  if (!menu) return;
+  const wasOpen = menu.classList.contains('open');
+  document.querySelectorAll('.msg-more-menu.open, .msg-react-popup.open').forEach(el => el.classList.remove('open'));
+  if (!wasOpen) {
+    menu.classList.add('open');
+  }
+}
+
+function toggleReactMenu(btnEl) {
+  const wrapper = btnEl.closest('.msg-react-wrapper');
+  if (!wrapper) return;
+  const popup = wrapper.querySelector('.msg-react-popup');
+  if (!popup) return;
+  const wasOpen = popup.classList.contains('open');
+  document.querySelectorAll('.msg-more-menu.open, .msg-react-popup.open').forEach(el => el.classList.remove('open'));
+  if (!wasOpen) {
+    popup.classList.add('open');
+  }
+}
+
+async function sendReaction(msgKey, emoji) {
+  document.querySelectorAll('.msg-react-popup.open').forEach(el => el.classList.remove('open'));
+  const msg = messageStore.get(msgKey);
+  if (!msg) return;
+
+  const postData = new URLSearchParams();
+  postData.append('action', 'react');
+  postData.append('targetTimestamp', String(msg.timestamp));
+  postData.append('targetSenderId', msg.senderId || '');
+  postData.append('emoji', emoji);
+
+  try {
+    const resp = await fetch('api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: postData.toString()
+    });
+    const res = await resp.json();
+    if (res.success) {
+      if (res.reactions) {
+        reactionStore.set(msgKey, res.reactions);
+        renderReactionsForMessage(msgKey);
+      }
+      pollMessages();
+    }
+  } catch (e) {
+  }
+}
+
+function syncAllReactions(reactionsObj) {
+  if (!reactionsObj || typeof reactionsObj !== 'object') return;
+  const seenKeys = new Set();
+  Object.keys(reactionsObj).forEach(msgKey => {
+    seenKeys.add(msgKey);
+    reactionStore.set(msgKey, reactionsObj[msgKey]);
+    renderReactionsForMessage(msgKey);
+  });
+  // Xoa reaction neu tin nhan khong con reaction nao
+  reactionStore.forEach((_, msgKey) => {
+    if (!seenKeys.has(msgKey)) {
+      reactionStore.delete(msgKey);
+      renderReactionsForMessage(msgKey);
+    }
+  });
+}
+
+function renderReactionsForMessage(msgKey) {
+  const parts = msgKey.split('_');
+  const ts = parts[0];
+  const senderId = parts.slice(1).join('_');
+  const domId = getMessageDomId(ts, senderId);
+  const el = document.getElementById('react-' + domId);
+  if (!el) return;
+
+  const data = reactionStore.get(msgKey);
+  const counts = (data && data.counts) ? data.counts : {};
+  const myReaction = (data && data.myReaction) ? data.myReaction : '';
+  const entries = Object.entries(counts).filter(([, c]) => c > 0);
+
+  if (entries.length === 0) {
+    el.innerHTML = '';
+    el.style.display = 'none';
+    return;
+  }
+
+  el.style.display = 'flex';
+  el.innerHTML = entries.map(([emoji, count]) => {
+    const activeClass = (emoji === myReaction) ? ' active' : '';
+    return `<button type="button" class="reaction-pill${activeClass}" onclick="sendReaction('${escapeHtml(msgKey)}','${emoji}')">${emoji} <span>${count}</span></button>`;
+  }).join('');
 }
